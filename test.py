@@ -5,6 +5,13 @@ app = Flask(__name__) #define app using Flask
 
 languages = [{'name' : 'JavaScript'}, {'name' : 'Python'}, {'name' : 'Ruby'}]
 
+files = [{
+    "text_files" : [], 
+    "json_files" : [], 
+    "cap_files" : [], 
+    "pcap_files" : []
+ }]
+
 path = "/Users/Amar/Desktop/ugradproj/pythonserver"
 os.chdir(path)
 
@@ -15,7 +22,8 @@ def test():
 
 @app.route('/lang', methods=['GET'])
 def returnAll():
-    return jsonify({'languages' : languages})
+    return jsonify({'output': files})
+    # return jsonify({'languages' : languages})
 
 @app.route('/lang/<string:name>', methods=['GET'])
 def returnOne(name):

@@ -1,6 +1,7 @@
 from flask import Flask, jsonify
 from flask_restful import reqparse, abort, Api, Resource, request
-import os
+from flask_json import FlaskJSON, JsonError, json_response, as_json
+import os, json
 
 os.chdir('/Users/Amar/Desktop/ugradproj/pythonserver')
 
@@ -11,25 +12,15 @@ parser = reqparse.RequestParser()
 parser.add_argument('data')
 
 """ Store different files """
-files = {
-    "text_files" : [], 
-    "json_files": [], 
-    "cap_files": [], 
-    "pcap_files": []
- }
 
-# def check_if_file_does_not_exist(file_name, file_type):
-#     """ Check if file exists """
-#     if file_name not in files[file_type]:
-#         abort(404, message="{1} File {2} doesn't exist".format(file_type, file_name))
-
-# def check_if_file_type_exists(file_type):
-#     """ Check if file type exists """
-#     if file_type not in files.keys():
-#         print "{1} doesn't exist in {2}".format(file_type, file_types) 
-#         abort(405, message="{1} File Type doesn't exist".format(file_type))
+all_files = {
+    "TEXT_FILES": [],
+    "JSON_FILES": [],
+    "PCAP_FILES": []
+}
 
 """ File functions """
+
 def create_file(file_name, data):
     f = open(file_name, "w")
     f.write(data)
@@ -44,15 +35,20 @@ def read_file(file_name):
     f.close()
     return file_data
 
-# def check_if_file_exists(file_name, file_type):
-#     """ Check if file exists """
-#     if file_name in file_type:
-#         abort(405, message="{} File {} already exist".format(file_type, file_name))
-
 class files(Resource):
     def get(self):
         """ returns all files of file_type """
-        return jsonify(files)
+        return all_files
+
+
+# @app.route('/files', methods=['GET'])
+# def files():
+#     """ returns all files of file_type """
+#     # return json.stringify(files)
+#     # return jsonify({'FILES': json.stringify(files)})
+#     # data = files.Request.get_json()
+#     # return json_response(files)
+#     return str(files1)
 
 class text(Resource):
     def get(self, file_name):
@@ -71,12 +67,11 @@ class text(Resource):
 
     def post(self, file_name):
         # check_if_file_exists(file_name, file_names)
-        # files['text_files'].append(file_name + ".txt")
+        all_files['TEXT_FILES'].append(file_name)
         args = parser.parse_args()
         data = args['data']
         create_file(file_name, data)
-        return str(files)
-        # return read_file(file_name)
+        return all_files['TEXT_FILES']
 
 api.add_resource(files, '/files')
 api.add_resource(text, '/text_file/<string:file_name>')
