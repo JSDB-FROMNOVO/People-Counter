@@ -3,7 +3,8 @@ from flask_restful import reqparse, abort, Api, Resource, request
 from flask_json import FlaskJSON, JsonError, json_response, as_json
 import os, json, simplejson
 
-os.chdir('/Users/Amar/Desktop/ugradproj/pythonserver')
+cur_dir = '/Users/Amar/Desktop/ugradproj/pythonserver'
+os.chdir(cur_dir)
 
 app = Flask(__name__)
 api = Api(app)
@@ -58,29 +59,40 @@ class text(Resource):
         """ List of all test files 
             TODO: List specific file details
         """
-        check_if_file_does_not_exist(file_name, file_names)
+        abort_if_file_doesnt_exist
         return read_file(file_name)
 
     def delete(self, file_name):
         """ Delete text file """
-        check_if_file_does_not_exist(file_name, file_names)
-        all_files["TEXT_FILES"].remove(file_name)
+        abort_if_file_doesnt_exist
         delete_file(file_name)
+        all_files["TEXT_FILES"].remove(file_name)
         return ("Deleted " + str(file_name)), 204
 
     def post(self, file_name):
-        check_if_file_exists(file_name, file_names)
-        all_files["TEXT_FILES"].append(file_name)
+        abort_if_file_doesnt_exist
         args = parser.parse_args()
         data = args['data']
-        print "HIII_1"
         create_file(file_name, data)
-        print "HIII_2"
-        print "HIII_3"
+        all_files["TEXT_FILES"].append(file_name)
         return all_files["TEXT_FILES"]
 
+class upload_file(Resource):
+    # curl -i -X POST -F files=@sample.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/input.txt
+    # curl -i -X POST -F files=@input.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/sample.txt
+    def post(self, file_type, file_name):
+        file_data = request.files['files']
+        # f.save('/Users/Amar/Desktop/ugradproj/pythonserver/text.txt')
+        print file_data
+        file_data.save('/Users/Amar/Desktop/ugradproj/pythonserver/'+file_name)
+        all_files[file_type].append(file_name)
+        # return file_data
+        return all_files
+
+
 api.add_resource(files, '/files')
-api.add_resource(text, '/files/<string:file_name>')
+api.add_resource(text, '/files/text/<string:file_name>')
+api.add_resource(upload_file, '/files/upload/<string:file_type>/<string:file_name>')
 
 if __name__ == '__main__':
     app.run(debug=True)
