@@ -49,25 +49,30 @@ def abort_if_file_doesnt_exist(file_name, file_type):
 
 """ Resource definitions """
 
+# '/files/<string:file_type>/<string:file_name>'
 class files(Resource):
-    def get(self):
-        """ returns all files of file_type """
+    # curl http://127.0.0.1:5000/files/see/files
+    def get(self, file_type, file_name):
+        """ List of all test files """
         return all_files
 
+    # curl http://127.0.0.1:5000/files/TEXT_FILES/test.txt -X DELETE -v
+    # curl http://127.0.0.1:5000/files/JSON_FILES/test.json -X DELETE -v
+    def delete(self, file_type, file_name):
+        """ Delete text file """
+        abort_if_file_doesnt_exist
+        delete_file(file_name)
+        all_files[file_type].remove(file_name)
+        return ("Deleted " + str(file_name)), 204
+
+# '/files/text/<string:file_name>'
 class text(Resource):
     def get(self, file_name):
-        """ List of all test files 
+        """ Read specific text files 
             TODO: List specific file details
         """
         abort_if_file_doesnt_exist
         return read_file(file_name)
-
-    def delete(self, file_name):
-        """ Delete text file """
-        abort_if_file_doesnt_exist
-        delete_file(file_name)
-        all_files["TEXT_FILES"].remove(file_name)
-        return ("Deleted " + str(file_name)), 204
 
     def post(self, file_name):
         abort_if_file_doesnt_exist
@@ -77,8 +82,9 @@ class text(Resource):
         all_files["TEXT_FILES"].append(file_name)
         return all_files["TEXT_FILES"]
 
+# '/files/upload/<string:file_type>/<string:file_name>'
 class upload_file(Resource):
-    # curl -i -X POST -F files=@sample.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/input.txt
+    # curl -i -X POST -F files=@input.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/test.txt
     # curl -i -X POST -F files=@input.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/sample.txt
     def post(self, file_type, file_name):
         file_data = request.files['files']
@@ -90,7 +96,7 @@ class upload_file(Resource):
         return all_files
 
 
-api.add_resource(files, '/files')
+api.add_resource(files, '/files/<string:file_type>/<string:file_name>')
 api.add_resource(text, '/files/text/<string:file_name>')
 api.add_resource(upload_file, '/files/upload/<string:file_type>/<string:file_name>')
 
