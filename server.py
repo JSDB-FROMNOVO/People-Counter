@@ -39,33 +39,11 @@ def read_file(file_name):
     f.close()
     return file_data
 
-def file_achive_add(file_name, file_type):
-    """ """
-    if os.path.isfile("_FILELIST_.json"):
-        json_file = open("_FILELIST_.json", 'r')
-        data = json_file.read()
-        json_file.close()
-        
-        files = simplejson.loads(data)
-        files[file_type].append(file_name)
-
-        create_file("_FILELIST_.json", files)
-    else:
-        file_data = simplejson.dumps(all_files, indent=4, skipkeys=True, sort_keys=True)
-        create_file("_FILELIST_.json", file_data)
-
-def file_archive_delete(file_name, file_type):
-    json_file = open("_FILELIST_.json", 'r')
-    data = json_file.read()
-    json_file.close()
-    
-    files = simplejson.loads(data)
-    files[file_type].remove(file_name)
-    create_file("_FILELIST_.json", files)
-
-
 """ Error cases """
- 
+
+def abort_if_file_doesnt_exist(file_name, file_type):
+    if file_name not in all_files["file_type"]:
+        abort(404, message="{} doesn't exist in {}".format(file_name, file_type)) 
 
 
 """ Resource definitions """
@@ -80,28 +58,29 @@ class text(Resource):
         """ List of all test files 
             TODO: List specific file details
         """
-        # check_if_file_does_not_exist(file_name, file_names)
+        check_if_file_does_not_exist(file_name, file_names)
         return read_file(file_name)
 
     def delete(self, file_name):
         """ Delete text file """
-        # check_if_file_does_not_exist(file_name, file_names)
+        check_if_file_does_not_exist(file_name, file_names)
         all_files["TEXT_FILES"].remove(file_name)
         delete_file(file_name)
-        file_archive_delete(file_name, "TEXT_FILES")
         return ("Deleted " + str(file_name)), 204
 
     def post(self, file_name):
-        # check_if_file_exists(file_name, file_names)
+        check_if_file_exists(file_name, file_names)
         all_files["TEXT_FILES"].append(file_name)
         args = parser.parse_args()
         data = args['data']
+        print "HIII_1"
         create_file(file_name, data)
-        file_achive_add(file_name, "TEXT_FILES")
+        print "HIII_2"
+        print "HIII_3"
         return all_files["TEXT_FILES"]
 
 api.add_resource(files, '/files')
-api.add_resource(text, '/text_file/<string:file_name>')
+api.add_resource(text, '/files/<string:file_name>')
 
 if __name__ == '__main__':
     app.run(debug=True)
