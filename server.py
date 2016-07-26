@@ -43,8 +43,8 @@ def read_file(file_name):
 """ Error cases """
 
 def abort_if_file_doesnt_exist(file_name, file_type):
-    if file_name not in all_files["file_type"]:
-        abort(404, message="{} doesn't exist in {}".format(file_name, file_type)) 
+    if file_name not in all_files[file_type]:
+        abort(404, message="{} doesn't exist".format(file_name)) 
 
 
 """ Resource definitions """
@@ -60,7 +60,7 @@ class files(Resource):
     # curl http://127.0.0.1:5000/files/JSON_FILES/test.json -X DELETE -v
     def delete(self, file_type, file_name):
         """ Delete text file """
-        abort_if_file_doesnt_exist
+        abort_if_file_doesnt_exist(file_name, file_type)
         delete_file(file_name)
         all_files[file_type].remove(file_name)
         return ("Deleted " + str(file_name)), 204
@@ -71,11 +71,11 @@ class text(Resource):
         """ Read specific text files 
             TODO: List specific file details
         """
-        abort_if_file_doesnt_exist
+        abort_if_file_doesnt_exist(file_name, file_type)
         return read_file(file_name)
 
+    # curl http://127.0.0.1:5000/files/text/test2.txt -d "data=TEXTDATA" -X POST -v
     def post(self, file_name):
-        abort_if_file_doesnt_exist
         args = parser.parse_args()
         data = args['data']
         create_file(file_name, data)
@@ -85,14 +85,12 @@ class text(Resource):
 # '/files/upload/<string:file_type>/<string:file_name>'
 class upload_file(Resource):
     # curl -i -X POST -F files=@input.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/test.txt
-    # curl -i -X POST -F files=@input.txt http://127.0.0.1:5000/files/upload/TEXT_FILES/sample.txt
+    # curl -i -X POST -F files=@sample.json http://127.0.0.1:5000/files/upload/JSON_FILES/test.json
     def post(self, file_type, file_name):
         file_data = request.files['files']
-        # f.save('/Users/Amar/Desktop/ugradproj/pythonserver/text.txt')
         print file_data
         file_data.save('/Users/Amar/Desktop/ugradproj/pythonserver/'+file_name)
         all_files[file_type].append(file_name)
-        # return file_data
         return all_files
 
 
