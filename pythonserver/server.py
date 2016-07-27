@@ -51,13 +51,13 @@ def abort_if_file_doesnt_exist(file_name, file_type):
 
 # '/files/<string:file_type>/<string:file_name>'
 class files(Resource):
-    # curl http://0.0.0.0:8101/files/see/files
+    # curl http://10.12.1.37:8101/files/see/files
     def get(self, file_type, file_name):
         """ List of all test files """
         return all_files
 
-    # curl http://0.0.0.0:8101/files/TEXT_FILES/test.txt -X DELETE -v
-    # curl http://0.0.0.0:8101/files/JSON_FILES/test.json -X DELETE -v
+    # curl http://10.12.1.37:8101/files/TEXT_FILES/test.txt -X DELETE -v
+    # curl http://10.12.1.37:8101/files/JSON_FILES/test.json -X DELETE -v
     def delete(self, file_type, file_name):
         """ Delete text file """
         abort_if_file_doesnt_exist(file_name, file_type)
@@ -65,8 +65,9 @@ class files(Resource):
         all_files[file_type].remove(file_name)
         return ("Deleted " + str(file_name)), 204
 
-# '/files/text/<string:file_name>'
+# '/text_files/text/<string:file_name>'
 class text(Resource):
+    # curl http://10.12.1.37:8101/files/text/test2.txt -X GET -v
     def get(self, file_name):
         """ Read specific text files 
             TODO: List specific file details
@@ -74,7 +75,7 @@ class text(Resource):
         abort_if_file_doesnt_exist(file_name, file_type)
         return read_file(file_name)
 
-    # curl http://0.0.0.0:8101/files/text/test2.txt -d "data=TEXTDATA" -X POST -v
+    # curl http://10.12.1.37:8101/files/text/test2.txt -d "data=TEXTDATA" -X POST -v
     def post(self, file_name):
         args = parser.parse_args()
         data = args['data']
@@ -84,8 +85,8 @@ class text(Resource):
 
 # '/files/upload/<string:file_type>/<string:file_name>'
 class upload_file(Resource):
-    # curl -i -X POST -F files=@input.txt http://0.0.0.0:8101/files/upload/TEXT_FILES/test.txt
-    # curl -i -X POST -F files=@sample.json http://0.0.0.0:8101/files/upload/JSON_FILES/test.json
+    # curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/files/upload/TEXT_FILES/test.txt
+    # curl -i -X POST -F files=@sample.json http://10.12.1.37:8101/files/upload/JSON_FILES/test.json
     def post(self, file_type, file_name):
         file_data = request.files['files']
         print file_data
@@ -95,7 +96,7 @@ class upload_file(Resource):
 
 
 api.add_resource(files, '/files/<string:file_type>/<string:file_name>')
-api.add_resource(text, '/files/text/<string:file_name>')
+api.add_resource(text, '/textfiles/<string:file_name>')
 api.add_resource(upload_file, '/files/upload/<string:file_type>/<string:file_name>')
 
 if __name__ == '__main__':
