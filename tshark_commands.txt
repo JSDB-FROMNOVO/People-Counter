@@ -7,7 +7,7 @@ sudo apt-get install tshark
   609  tshark -r wireless.cap
   610  tshark -r wireless.cap > out.txt
   612  tshark -r wireless.cap -f wlan.fc.type_subtype==4
-  613  tshark -r wireless.cap -R wlan.fc.type_subtype==4
+  613  tshark -r wireless.cap -R wlan.fc.type_sucbtype==4
   614  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -T fields -e eth.addr -e eth.src
   615  tshark -r wireless.cap -R wlan.fc.type_subtype==4 
   616  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"rhs","%rhs","uhs","%uhs"
