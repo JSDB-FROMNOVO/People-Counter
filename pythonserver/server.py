@@ -1,12 +1,16 @@
 from flask import Flask, jsonify
 from flask_restful import reqparse, abort, Api, Resource, request
-from flask_json import FlaskJSON, JsonError, json_response, as_json
+from flask_pymongo import PyMongo 
 import os, json, simplejson
+
 
 cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/'
 os.chdir(cur_dir)
 
 app = Flask(__name__)
+app.config["MONGO_DBNAME"] = "wifisniff_db"
+app.config["MONGO_URI"] = "mongodb://amar:qwerty54321@ds031835.mlab.com:31835/wifisniff_db"
+mongo = PyMongo(app, config_prefix="MONGO")
 api = Api(app)
 
 parser = reqparse.RequestParser()
@@ -46,6 +50,26 @@ def read_file(file_name):
     f.close()
     return file_data
 
+
+""" Database funtions """
+ 
+def add_json_to_db(file_name):
+    json_file = open(str(file_name), "r")
+    data = json_file.read()
+    json_file.close()
+    json_data = simplejson.loads(data)
+    for sniffs in json_data:
+        mongo.db.wifi_sniffs.insert(sniffs)
+
+def rem_json_from_db(file_name):
+    json_file = open(str(file_name), "r")
+    data = json_file.read()
+    json_file.close()
+    json_data = simplejson.loads(data)
+    for sniffs in json_data:
+        mongo.db.wifi_sniffs.remove(sniffs)
+
+
 """ Error cases """
 
 def abort_if_file_doesnt_exist(file_name, file_type):
@@ -67,6 +91,7 @@ class files(Resource):
     def delete(self, file_name):
         """ Delete text file """
         file_type = file_ext(str(file_name))
+        rem_json_from_db(file_name)
         abort_if_file_doesnt_exist(file_name, file_type)
         delete_file(file_name)
         all_files[file_type].remove(file_name)
@@ -101,6 +126,7 @@ class upload_file(Resource):
         file_data = request.files['files']
         file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver', file_name))
         all_files[file_type].append(file_name)
+        add_json_to_db(file_name)
         return all_files
 
 
