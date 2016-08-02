@@ -3,6 +3,7 @@ from flask_restful import reqparse, abort, Api, Resource, request
 from flask_pymongo import PyMongo 
 import os, json, simplejson
 
+hello = ""
 
 cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/'
 os.chdir(cur_dir)
