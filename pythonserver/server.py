@@ -3,8 +3,6 @@ from flask_restful import reqparse, abort, Api, Resource, request
 from flask_pymongo import PyMongo 
 import os, json, simplejson
 
-hello = ""
-
 cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/'
 os.chdir(cur_dir)
 
@@ -70,38 +68,55 @@ def rem_json_from_db(file_name):
     for sniffs in json_data:
         mongo.db.wifi_sniffs.remove(sniffs)
 
+def get_documents():
+    """ TODO: implement for multiple collections """
+    output = []
+    wifi_sniff_collection = mongo.db.wifi_sniffs.find()
+    for document in wifi_sniff_collection:
+        # print document
+        del document['_id']
+        output.append(document)
+    return output
+
 
 """ Error cases """
 
 def abort_if_file_doesnt_exist(file_name, file_type):
     if file_name not in all_files[file_type]:
-        abort(404, message="{} doesn't exist".format(file_name)) 
+        abort(404, message="{} doesn't exist".format(file_name))
+
+def abort_if_file_exists(file_name, file_type):
+    if file_name in all_files[file_type]:
+        abort(405, message="{} already exists".format(file_name)) 
 
 
 """ Resource definitions """
 
 # '/files/<string:file_name>'
 class files(Resource):
-    # curl http://10.12.1.37:8101/files/all
-    def get(self, file_name):
+    # curl http://10.12.1.37:8101/files/0/all
+    def get(self, file_name, db):
         """ List of all test files """
         return all_files
 
-    # curl http://10.12.1.37:8101/files/test.txt -X DELETE -v
-    # curl http://10.12.1.37:8101/files/test.json -X DELETE -v
-    def delete(self, file_name):
+    # curl http://10.12.1.37:8101/files/0/test.txt -X DELETE -v
+    # curl http://10.12.1.37:8101/files/1/test.json -X DELETE -v
+    def delete(self, file_name, db):
         """ Delete text file """
         file_type = file_ext(str(file_name))
-        rem_json_from_db(file_name)
         abort_if_file_doesnt_exist(file_name, file_type)
+
+        if db:
+            rem_json_from_db(file_name)
+        
         delete_file(file_name)
         all_files[file_type].remove(file_name)
-        return ("Deleted " + str(file_name)), 204
+        return ("Deleted " + str(file_name))
 
 # '/data/<string:file_name>'
-class text(Resource):
-    # curl http://10.12.1.37:8101/data/test1txt -X GET -v
-    def get(self, file_name):
+class data(Resource):
+    # curl http://10.12.1.37:8101/data/0/test1txt -X GET -v
+    def get(self, file_name, db):
         """ Read specific text files 
             TODO: List specific file details
         """
@@ -109,35 +124,52 @@ class text(Resource):
         abort_if_file_doesnt_exist(file_name, file_type)
         return read_file(file_name)
 
-    # curl http://10.12.1.37:8101/data/test1.txt -d "data=TEXTDATA" -X POST -v
-    def post(self, file_name):
+    # curl http://10.12.1.37:8101/data/0/test1.txt -d data="DATA" -X POST -v
+    def post(self, file_name, db):
         file_type = file_ext(str(file_name))
+        abort_if_file_exists(file_name, file_type)
         args = parser.parse_args()
         data = args['data']
         create_file(file_name, data)
         all_files[file_type].append(file_name)
+        
+        if db:
+            add_json_to_db(file_name)
+
         return all_files
 
 # '/upload/<string:file_name>'
 class upload_file(Resource):
-    # curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/upload/test2.txt
-    # curl -i -X POST -F files=@sample.json http://10.12.1.37:8101/upload/test2.json
-    def post(self, file_name):
+    # curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/upload/0/test2.txt
+    # curl -i -X POST -F files=@pi.json http://10.12.1.37:8101/upload/1/test2.json
+    def post(self, file_name, db):
         file_type = file_ext(str(file_name))
+        abort_if_file_exists(file_name, file_type)
         file_data = request.files['files']
         file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver', file_name))
         all_files[file_type].append(file_name)
-        add_json_to_db(file_name)
+        
+        if db:
+            add_json_to_db(file_name)
+        
         return all_files
 
+# '/db/<string:collection_name>'
+class db(Resource):
+    # curl http://10.12.1.37:8101/db -X GET -v
+    def get(self):
+        documents = get_documents()
+        print documents
+        test = [{'1': 'one'}, {'2': 'two'}]
+        return jsonify({"wifi_sniffs" : documents})
+        # return jsonify({"wifi_sniffs" : documents})
+        # return jsonify({"wifi_sniffs" : documents})
 
-# api.add_resource(files, '/files/<string:file_type>/<string:file_name>')
-# api.add_resource(text, '/textfiles/<string:file_name>')
-# api.add_resource(upload_file, '/files/upload/<string:file_type>/<string:file_name>')
 
-api.add_resource(files, '/files/<string:file_name>')
-api.add_resource(text, '/data/<string:file_name>')
-api.add_resource(upload_file, '/upload/<string:file_name>')
+api.add_resource(files, '/files/<int:db>/<string:file_name>')
+api.add_resource(data, '/data/<int:db>/<string:file_name>')
+api.add_resource(upload_file, '/upload/<int:db>/<string:file_name>')
+api.add_resource(db, '/db')
 
 
 if __name__ == '__main__':

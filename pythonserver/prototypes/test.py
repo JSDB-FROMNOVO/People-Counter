@@ -10,10 +10,10 @@ files = [{
     "json_files" : [], 
     "cap_files" : [], 
     "pcap_files" : []
- }]
+ }, {"another one" : []}]
 
-path = "/Users/Amar/Desktop/ugradproj/pythonserver"
-os.chdir(path)
+# path = "/Users/Amar/Desktop/ugradproj/pythonserver"
+# os.chdir(path)
 
 @app.route('/', methods=['GET'])
 def test():
