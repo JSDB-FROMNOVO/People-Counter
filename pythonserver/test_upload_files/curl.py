@@ -6,6 +6,7 @@ delete = ["curl http://0.0.0.0:5000/files/0/test.txt -X DELETE -v", "curl http:/
 read_file = "curl http://0.0.0.0:5000/data/0/test.txt -X GET -v"
 create_file = "curl http://0.0.0.0:5000/data/0/test.txt -d data='TEXTDATA' -X POST -v"
 upload_file = "curl -i -X POST -F files=@input.txt http://0.0.0.0:5000/upload/1/pi.json"
+show_db = "curl http://10.12.1.37:8101/db -X GET -v"
 
 cur_dir = "/Users/Amar/Desktop/ugradproj/server/pythonserver/test_upload_files"
 
@@ -49,8 +50,9 @@ def upload_file(file_name, upload_file_name, cur_dir, db=False):
 
 """ Database funtions """
 
-def get_collection(collection_name):
-	print "hello"
+def get_collection():
+	url = "http://0.0.0.0:5000/db"
+	subprocess.call(["curl", url, "-X", "GET", "-v"], shell=False)	
 
 # show_all_files()
 # delete_file("test.txt")
@@ -58,3 +60,5 @@ def get_collection(collection_name):
 # read_file("test.txt")
 # create_file("test.txt", "This is simple text file!")
 # upload_file("pi.json", "test.json", cur_dir, db=True)
+
+get_collection()
