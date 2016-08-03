@@ -159,11 +159,7 @@ class db(Resource):
     # curl http://10.12.1.37:8101/db -X GET -v
     def get(self):
         documents = get_documents()
-        print documents
-        test = [{'1': 'one'}, {'2': 'two'}]
         return jsonify({"wifi_sniffs" : documents})
-        # return jsonify({"wifi_sniffs" : documents})
-        # return jsonify({"wifi_sniffs" : documents})
 
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
