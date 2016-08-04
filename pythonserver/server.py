@@ -3,7 +3,7 @@ from flask_restful import reqparse, abort, Api, Resource, request
 from flask_pymongo import PyMongo 
 import os, json, simplejson
 
-cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/'
+cur_dir = '/home/ubuntu/ugradproject/pythonserver'
 os.chdir(cur_dir)
 
 app = Flask(__name__)
@@ -20,10 +20,12 @@ parser.add_argument('data')
 all_files = {
     "TEXT_FILES": [],
     "JSON_FILES": [],
-    "CAP_FILES": []
+    "CAP_FILES": [],
+    "BASH_FILES": [],
+    "PYTHON_FILES": []
 }
 
-MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES"}
+MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
 
 def file_ext(file_name):
     extension = file_name.rsplit('.', 1)[1]
@@ -146,7 +148,7 @@ class upload_file(Resource):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
         file_data = request.files['files']
-        file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver', file_name))
+        file_data.save(os.path.join('/home/ubuntu/ugradproject/pythonserver', file_name))
         all_files[file_type].append(file_name)
         
         if db:
@@ -169,4 +171,4 @@ api.add_resource(db, '/db')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', port=8101, debug=True)
