@@ -8,7 +8,7 @@ create_file = "curl http://10.12.1.37:8101/data/0/test.txt -d data='TEXTDATA' -X
 upload_file = "curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/upload/1/pi.json"
 show_db = "curl http://10.12.1.37:8101/db -X GET -v"
 
-cur_dir = "/Users/Amar/Desktop/ugradproj/server/pythonserver/test_upload_files"
+cur_dir = "/home/ubuntu/ugradproject/pythonserverg"
 
 
 """ File functions """
@@ -61,4 +61,4 @@ def get_collection():
 # create_file("test.txt", "This is simple text file!")
 # upload_file("pi.json", "test.json", cur_dir, db=True)
 
-get_collection()
+# get_collection()
