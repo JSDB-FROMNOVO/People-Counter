@@ -1,0 +1,181 @@
+{
+  "wifi_sniffs": [
+    {
+      "date": "2016-08-12",
+      "destination": "a8:9f:ba:2f:8e:f5",
+      "signal_strength": -45,
+      "source": "f4:06:69:14:57:95",
+      "ssid": "tlinssid",
+      "subtype": 5,
+      "time": "19:11:46.640856",
+      "timestamp": 1471029088.089723,
+      "type": 0
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "0c:8b:fd:b1:e0:a9",
+      "signal_strength": -41,
+      "source": "00:00:00:00:00:00",
+      "subtype": 12,
+      "time": "19:11:50.605122",
+      "timestamp": 1471029088.139744,
+      "type": 1
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "a8:9f:ba:2f:8e:f5",
+      "signal_strength": -41,
+      "source": "74:44:01:51:62:7c",
+      "ssid": "nallab",
+      "subtype": 5,
+      "time": "19:11:49.998011",
+      "timestamp": 1471029088.1382,
+      "type": 0
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -256,
+      "source": "90:48:9a:5b:b4:b7",
+      "subtype": 8,
+      "time": "19:10:32.080195",
+      "timestamp": 1471028996.95357,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "ff:ff:ff:ff:ff:ff",
+      "signal_strength": -43,
+      "source": "0c:8b:fd:b1:e0:a9",
+      "subtype": 14,
+      "time": "19:11:50.814576",
+      "timestamp": 1471029088.139894,
+      "type": 1
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "ff:ff:ff:ff:ff:ff",
+      "seq": 3735,
+      "signal_strength": -59,
+      "source": "90:48:9a:5b:19:73",
+      "subtype": 4,
+      "time": "19:04:29.363837",
+      "timestamp": 1471028652.872428,
+      "type": 0
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -47,
+      "source": "10:fe:ed:18:39:cf",
+      "subtype": 8,
+      "time": "19:11:36.505872",
+      "timestamp": 1471029065.757351,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -53,
+      "source": "c4:e9:84:1b:56:09",
+      "subtype": 11,
+      "time": "19:11:24.019066",
+      "timestamp": 1471029065.348824,
+      "type": 1
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -39,
+      "source": "ac:bc:32:8e:8c:4f",
+      "subtype": 11,
+      "time": "19:11:20.896248",
+      "timestamp": 1471029065.019266,
+      "type": 1
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "f4:06:69:14:57:95",
+      "signal_strength": -17,
+      "source": "10:fe:ed:18:39:49",
+      "subtype": 0,
+      "time": "19:11:20.455173",
+      "timestamp": 1471029042.711441,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -41,
+      "source": "b4:8b:19:cf:54:01",
+      "subtype": 4,
+      "time": "19:09:13.318070",
+      "timestamp": 1471028927.404993,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -27,
+      "source": "7c:7a:91:9b:83:81",
+      "subtype": 11,
+      "time": "19:11:10.892469",
+      "timestamp": 1471029042.514238,
+      "type": 1
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -256,
+      "source": "6c:ad:f8:8a:bb:05",
+      "subtype": 8,
+      "time": "19:10:10.204436",
+      "timestamp": 1471028974.256669,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "74:44:01:51:62:7c",
+      "signal_strength": -41,
+      "source": "f4:06:69:14:57:94",
+      "subtype": 8,
+      "time": "19:09:48.681681",
+      "timestamp": 1471028973.414656,
+      "type": 2
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "ff:ff:ff:ff:ff:ff",
+      "seq": 3494,
+      "signal_strength": -63,
+      "source": "e0:f8:47:15:c9:00",
+      "subtype": 4,
+      "time": "19:09:12.473470",
+      "timestamp": 1471028905.450233,
+      "type": 0
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "ff:ff:ff:ff:ff:ff",
+      "seq": 3029,
+      "signal_strength": -71,
+      "source": "00:1d:4f:fe:e9:03",
+      "ssid": "UofT",
+      "subtype": 4,
+      "time": "19:08:58.691513",
+      "timestamp": 1471028905.212155,
+      "type": 0
+    },
+    {
+      "date": "2016-08-12",
+      "destination": "ff:ff:ff:ff:ff:ff",
+      "seq": 1903,
+      "signal_strength": -43,
+      "source": "a8:9f:ba:2f:8e:f5",
+      "subtype": 4,
+      "time": "19:11:46.439061",
+      "timestamp": 1471029088.088485,
+      "type": 0
+    }
+  ]
+}

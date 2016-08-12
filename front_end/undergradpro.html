@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="./jquery-2.0.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            getNum();
+            getInvalidNum();
+        });
+
+        var getNum = function () {
+            $.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/REAL",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {
+                    //do what ever with the reply
+                    console.log('success');
+                    console.log(jsonResult);
+                    $("#num-unique-mac").html(jsonResult['wifi_sniffs'].length);
+                    width = $('#num-unique-mac').width();
+                    $('#num-unique-mac').css({
+                        'height': width + 'px'
+                    });
+                    $('#loading_screen').hide();
+                    $('#main_content').show();
+                },
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+            });
+            setTimeout(function () {
+                getNum();
+            }, 3000);
+        }
+        var getInvalidNum = function () {
+            $.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/RANDOMIZED",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {
+                    //do what ever with the reply
+                    console.log('success');
+                    console.log(jsonResult);
+                    $("#num-invalid-mac").html(jsonResult['wifi_sniffs'].length);
+                    var width = $('#num-invalid-mac').width();
+                    var height = $('#num-invalid-mac').height();
+                    console.log("THIS WIDTH" + width);
+                    console.log("THIS WIDTH" + height);
+                    $('#num-invalid-mac').css({
+                        'height': width + 'px'
+                    });
+                    $('#loading_screen').hide();
+                    $('#main_content').show();
+                    
+                },
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+            });
+            setTimeout(function () {
+                getInvalidNum();
+            }, 3000);
+        }
+    </script>
+    <style>
+        
+        .hideoverflow{
+            overflow: hidden;
+        }
+        .section#main {
+            text-align: center;
+        }
+        
+        .title_text {
+            text-align: center;
+            font-weight: 100;
+            font-size: 250%;
+            z-index: 20;
+        }
+        
+        .global_font {
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        
+        .nomargin {
+            margin: 0;
+        }
+        
+        .abs_center {
+            width: 500px;
+            height: 50px;
+            z-index: 20;
+            max-height: 100%;
+            max-width: 100%;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto;
+        }
+        
+        .abs_center_text{
+            width: 500px;
+            height: 50px;
+            z-index: 20;
+            max-height: 100%;
+            max-width: 100%;
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -15%;
+            bottom: 0;
+            margin: auto;
+        }
+        #num-unique-mac {
+            font-weight: 200;
+        }
+        
+        #num-invalid-mac {
+            font-weight: 200;
+        }
+        
+        #background {
+           background-size: 100% 100%;
+        }
+        
+        .round_background {
+            display: inline-block;
+            background-color: #34495e;
+            border-radius: 50%;
+            color: #ffffff;
+            padding: 14px;
+            min-width: 50px;
+        }
+        #loading_screen{
+            background-color: black;
+/*            opacity: 0.5;*/
+            z-index: 50;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .nodisplay{
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="nomargin hideoverflow">
+    <section id="main" class="global_font">
+        <img id="background" src="./background.jpg">
+        <section id="main_content" class="nodisplay">
+            <h1 class="title_text nomargin abs_center_text">
+                There are currently <div class="round_background"><span id="num-unique-mac"> 0 </span> </div> users
+                <br/>
+                And <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
+            </h1>
+        </section>
+        <section id="loading_screen">
+            <h1 class="title_text nomargin abs_center">
+                Loading ...
+            </h1>
+        </section>
+    </section>
+
+</body>
+
+</html>
