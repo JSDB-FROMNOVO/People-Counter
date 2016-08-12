@@ -3,8 +3,9 @@ from flask_restful import reqparse, abort, Api, Resource, request
 from flask_pymongo import PyMongo 
 import os, json, simplejson
 from datetime import datetime
+import curl_test
 
-cur_dir = '/home/ubuntu/ugradproject/pythonserver/test'
+cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/test'
 os.chdir(cur_dir)
 
 app = Flask(__name__)
@@ -21,7 +22,7 @@ parser.add_argument('data')
 all_files = {
     "TEXT_FILES": [],
     "JSON_FILES": [],
-    "PAP_FILES": [],
+    "PCAP_FILES": [],
     "BASH_FILES": [],
     "PYTHON_FILES": []
 }
@@ -61,16 +62,13 @@ def add_json_to_db(file_name):
     json_file.close()
     json_data = simplejson.loads(data) 
     
-    for sniffs in json_data:
-        
+    for sniff in json_data:
         dt = str(datetime.now())
-        print datetime
         date = dt.split()[0]
         time = dt.split()[1]
-        sniffs["date"] = date
-        sniffs["time"] = time
-
-        add_distinct_sniff(sniffs)
+        sniff["date"] = date
+        sniff["time"] = time
+        add_sniff(sniff)
 
 def rem_json_from_db(file_name):
     json_file = open(str(file_name), "r")
@@ -80,24 +78,44 @@ def rem_json_from_db(file_name):
     for sniffs in json_data:
         mongo.db.wifi_sniffs.remove(sniffs)
 
-def get_documents():
+def get_documents(sniff_type):
     """ TODO: implement for multiple collections """
+    if sniff_type == "REAL":
+        db = mongo.db.wifi_sniffs
+    elif sniff_type == "RANDOMIZED":
+        db = mongo.db.invalid_sniffs
+    else:
+        abort_if_invalid_collection(collection)
+
     output = []
-    wifi_sniff_collection = mongo.db.wifi_sniffs.find()
-    for document in wifi_sniff_collection:
+    wifi_sniff_collection = db.find()
+    for sniff in wifi_sniff_collection:
         # print document
-        del document['_id']
-        output.append(document)
-    return output
+        del sniff['_id']
+        output.append(sniff)
+    return sniff
 
 ###
 
-def add_distinct_sniff(sniffs):
-    if mongo.db.wifi_sniffs.find({"source": sniffs["source"]}).count() > 0:
-        print "SNIFF (%s) ALREADY DETECTED --> SKIP" % str(sniffs["source"])
+def add_sniff(sniff):
+    """ add sniff to collection based 
+        on if vendor exists 
+    """
+    mac = sniff["source"]
+    db = None
+    if curl_test.check_if_real_mac(mac):
+        db = mongo.db.wifi_sniffs
+        tag = "REAL"
     else:
-        print "SNIFF (%s) DETECTED --> ADDING" % str(sniffs["source"])
-        mongo.db.wifi_sniffs.insert(sniffs)
+        db = mongo.db.invalid_sniffs
+        tag = "RANDOMIZED"
+
+    if db.find({"source": sniff["source"]}).count() > 0:
+        print "%s SNIFF (%s) ALREADY DETECTED --> UPDATING" % (tag, str(sniff["source"]))
+        db.update_one({ "source": sniff["source"]}, {"$set": sniff}, upsert=False)
+    else:
+        print "%s SNIFF (%s) DETECTED --> ADDING" % (tag, str(sniff["source"]))
+        db.insert(sniff)
 
 ####
 
@@ -111,6 +129,10 @@ def abort_if_file_doesnt_exist(file_name, file_type):
 def abort_if_file_exists(file_name, file_type):
     if file_name in all_files[file_type]:
         abort(405, message="{} already exists".format(file_name)) 
+
+def abort_if_invalid_collection(collection):
+    if collection not in mongo.db.collection_names():
+        abort(406, message="{} collection does not exist".format(collection)) 
 
 
 """ Resource definitions """
@@ -169,7 +191,7 @@ class upload_file(Resource):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
         file_data = request.files['files']
-        file_data.save(os.path.join('/home/ubuntu/ugradproject/pythonserver/test', file_name))
+        file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver/test', file_name))
         all_files[file_type].append(file_name)
         
         if db:
@@ -180,15 +202,16 @@ class upload_file(Resource):
 # '/db/<string:collection_name>'
 class db(Resource):
     # curl http://10.12.1.37:8101/db -X GET -v
-    def get(self):
-        documents = get_documents()
+    def get(self, sniff_type):
+        """ return all real of randomized sniffs """
+        documents = get_documents(sniff_type)
         return jsonify({"wifi_sniffs" : documents})
 
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
 api.add_resource(upload_file, '/upload/<int:db>/<string:file_name>')
-api.add_resource(db, '/db')
+api.add_resource(db, '/db/<string:sniff_type>')
 
 
 if __name__ == '__main__':

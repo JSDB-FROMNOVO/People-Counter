@@ -54,6 +54,17 @@ def get_collection():
 	url = "http://0.0.0.0:8101/db"
 	subprocess.call(["curl", url, "-X", "GET", "-v"], shell=False)	
 
+def check_if_real_mac(mac):
+	#mac = "F0:FB:FB:01:FA:21" 
+	mac_new = mac.replace(":", "%3A")
+	url = "http://api.macvendors.com/" + mac_new
+	vendor = subprocess.check_output(["curl", url], shell=False)	
+	
+	if len(vendor):
+		return True
+	else:
+		return False 
+
 # show_all_files()
 # delete_file("test.txt")
 # delete_file("test.json", db=True)
@@ -62,3 +73,4 @@ def get_collection():
 # upload_file("pi.json", "test.json", cur_dir, db=True)
 
 # get_collection()
+check_real_mac()
