@@ -1,4 +1,4 @@
-sudo apt-get install tshark 
+udo apt-get install tshark 
   603  tshark -h
   604  tshark -h | grep filter
   605  man tshark 
