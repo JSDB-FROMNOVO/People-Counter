@@ -21,12 +21,12 @@ parser.add_argument('data')
 all_files = {
     "TEXT_FILES": [],
     "JSON_FILES": [],
-    "CAP_FILES": [],
+    "PAP_FILES": [],
     "BASH_FILES": [],
     "PYTHON_FILES": []
 }
 
-MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
+MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "pcap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
 
 def file_ext(file_name):
     extension = file_name.rsplit('.', 1)[1]
