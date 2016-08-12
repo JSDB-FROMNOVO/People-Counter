@@ -4,7 +4,7 @@ from flask_pymongo import PyMongo
 import os, json, simplejson
 from datetime import datetime
 
-cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/test'
+cur_dir = '/home/ubuntu/ugradproject/pythonserver/test'
 os.chdir(cur_dir)
 
 app = Flask(__name__)
@@ -26,7 +26,7 @@ all_files = {
     "PYTHON_FILES": []
 }
 
-MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
+MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "pcap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
 
 def file_ext(file_name):
     extension = file_name.rsplit('.', 1)[1]
@@ -70,7 +70,7 @@ def add_json_to_db(file_name):
         sniffs["date"] = date
         sniffs["time"] = time
 
-        add_distince_sniff(sniffs)
+        add_distinct_sniff(sniffs)
 
 def rem_json_from_db(file_name):
     json_file = open(str(file_name), "r")
@@ -92,7 +92,7 @@ def get_documents():
 
 ###
 
-def add_distince_sniff(sniffs):
+def add_distinct_sniff(sniffs):
     if mongo.db.wifi_sniffs.find({"source": sniffs["source"]}).count() > 0:
         print "SNIFF (%s) ALREADY DETECTED --> SKIP" % str(sniffs["source"])
     else:
@@ -169,7 +169,7 @@ class upload_file(Resource):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
         file_data = request.files['files']
-        file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver/test', file_name))
+        file_data.save(os.path.join('/home/ubuntu/ugradproject/pythonserver/test', file_name))
         all_files[file_type].append(file_name)
         
         if db:
