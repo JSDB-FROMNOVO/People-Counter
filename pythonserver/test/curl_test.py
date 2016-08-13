@@ -56,12 +56,13 @@ def get_collection():
 
 def check_if_real_mac(mac):
 	#mac = "F0:FB:FB:01:FA:21" 
+	mac = str(mac)
 	mac_new = mac.replace(":", "%3A")
 	url = "http://api.macvendors.com/" + mac_new
 	vendor = subprocess.check_output(["curl", url], shell=False)	
 	
 	if len(vendor):
-		return True
+		return vendor
 	else:
 		return False 
 
@@ -73,4 +74,4 @@ def check_if_real_mac(mac):
 # upload_file("pi.json", "test.json", cur_dir, db=True)
 
 # get_collection()
-check_real_mac()
+#check_real_mac()

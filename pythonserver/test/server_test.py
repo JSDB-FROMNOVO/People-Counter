@@ -1,11 +1,12 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, Response
 from flask_restful import reqparse, abort, Api, Resource, request
-from flask_pymongo import PyMongo 
+from flask_pymongo import PyMongo
+from flask_cors import CORS, cross_origin 
 import os, json, simplejson
 from datetime import datetime
 import curl_test
 
-cur_dir = '/Users/Amar/Desktop/ugradproj/server/pythonserver/test'
+cur_dir = '/home/ubuntu/ugradproject/pythonserver/test'
 os.chdir(cur_dir)
 
 app = Flask(__name__)
@@ -13,6 +14,7 @@ app.config["MONGO_DBNAME"] = "wifisniff_db"
 app.config["MONGO_URI"] = "mongodb://amar:qwerty54321@ds031835.mlab.com:31835/wifisniff_db"
 mongo = PyMongo(app, config_prefix="MONGO")
 api = Api(app)
+CORS(app)
 
 parser = reqparse.RequestParser()
 parser.add_argument('data')
@@ -24,10 +26,12 @@ all_files = {
     "JSON_FILES": [],
     "PCAP_FILES": [],
     "BASH_FILES": [],
-    "PYTHON_FILES": []
+    "PYTHON_FILES": [],
+    "HTML_FILES": [],
+    "JPG_FILES": []
 }
 
-MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "pcap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
+MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "pcap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES", "html": "HTML_FILES", "jpg": "JPG_FILES"}
 
 def file_ext(file_name):
     extension = file_name.rsplit('.', 1)[1]
@@ -93,7 +97,7 @@ def get_documents(sniff_type):
         # print document
         del sniff['_id']
         output.append(sniff)
-    return sniff
+    return output
 
 ###
 
@@ -104,9 +108,11 @@ def add_sniff(sniff):
     mac = sniff["source"]
     db = None
     if curl_test.check_if_real_mac(mac):
-        db = mongo.db.wifi_sniffs
+        sniff["vendor"] = curl_test.check_if_real_mac(mac)
+	db = mongo.db.wifi_sniffs
         tag = "REAL"
     else:
+	sniff["vendor"] = None
         db = mongo.db.invalid_sniffs
         tag = "RANDOMIZED"
 
@@ -191,7 +197,7 @@ class upload_file(Resource):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
         file_data = request.files['files']
-        file_data.save(os.path.join('/Users/Amar/Desktop/ugradproj/server/pythonserver/test', file_name))
+        file_data.save(os.path.join('/home/ubuntu/ugradproject/pythonserver/test', file_name))
         all_files[file_type].append(file_name)
         
         if db:
@@ -199,7 +205,7 @@ class upload_file(Resource):
         
         return all_files
 
-# '/db/<string:collection_name>'
+# '/db/<string:sniff_type>'
 class db(Resource):
     # curl http://10.12.1.37:8101/db -X GET -v
     def get(self, sniff_type):
@@ -207,6 +213,12 @@ class db(Resource):
         documents = get_documents(sniff_type)
         return jsonify({"wifi_sniffs" : documents})
 
+    def post(self, sniff_type):
+	#documents = get_documents(sniff_type)
+        #return jsonify({"wifi_sniffs" : documents})	
+	resp = Response("")
+	resp.headers['Access-Control-Allow-Origin'] = '*'
+	return resp
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
