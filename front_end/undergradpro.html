@@ -8,7 +8,10 @@
             getNum();
             getInvalidNum();
         });
-
+        
+        var validUser = 0;
+        var invalidUser = 0;
+        
         var getNum = function () {
             $.ajax({
                 type: "GET",
@@ -25,6 +28,10 @@
                     $('#num-unique-mac').css({
                         'height': width + 'px'
                     });
+                    
+                    validUser = jsonResult['wifi_sniffs'].length;
+                    updateTotalUser();
+                    
                     $('#loading_screen').hide();
                     $('#main_content').show();
                 },
@@ -57,6 +64,10 @@
                     $('#num-invalid-mac').css({
                         'height': width + 'px'
                     });
+                    
+                    invalidUser = jsonResult['wifi_sniffs'].length
+                    updateTotalUser();
+                    
                     $('#loading_screen').hide();
                     $('#main_content').show();
                     
@@ -70,6 +81,10 @@
             setTimeout(function () {
                 getInvalidNum();
             }, 3000);
+        };
+        
+        var updateTotalUser = function(){
+            $("#num-total-mac").html(validUser + invalidUser);
         }
     </script>
     <style>
@@ -130,6 +145,9 @@
         #num-invalid-mac {
             font-weight: 200;
         }
+        #num-total-mac {
+            font-weight: 200;
+        }
         
         #background {
            background-size: 100% 100%;
@@ -165,6 +183,8 @@
                 There are currently <div class="round_background"><span id="num-unique-mac"> 0 </span> </div> users
                 <br/>
                 And <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
+                <br/>
+                Total <div class="round_background"><span id="num-total-mac"> 0 </span> </div> users!
             </h1>
         </section>
         <section id="loading_screen">
