@@ -153,7 +153,7 @@
            background-size: 100% 100%;
         }
         
-        .round_background {
+        .round_background_blue {
             display: inline-block;
             background-color: #34495e;
             border-radius: 50%;
@@ -161,6 +161,25 @@
             padding: 14px;
             min-width: 50px;
         }
+        
+        .round_background_green {
+            display: inline-block;
+            background-color: #16a085;
+            border-radius: 50%;
+            color: #ffffff;
+            padding: 14px;
+            min-width: 50px;
+        }
+        
+        .round_background_orange {
+            display: inline-block;
+            background-color: #f39c12;
+            border-radius: 50%;
+            color: #ffffff;
+            padding: 14px;
+            min-width: 50px;
+        }
+        
         #loading_screen{
             background-color: black;
 /*            opacity: 0.5;*/
@@ -180,11 +199,11 @@
         <img id="background" src="./background.jpg">
         <section id="main_content" class="nodisplay">
             <h1 class="title_text nomargin abs_center_text">
-                There are currently <div class="round_background"><span id="num-unique-mac"> 0 </span> </div> users
+                There are currently <div class="round_background_green"><span id="num-unique-mac"> 0 </span> </div> users
                 <br/>
-                And <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
+                And <div class="round_background_orange"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
                 <br/>
-                Total <div class="round_background"><span id="num-total-mac"> 0 </span> </div> users!
+                Total <div class="round_background_blue"><span id="num-total-mac"> 0 </span> </div> users!
             </h1>
         </section>
         <section id="loading_screen">
