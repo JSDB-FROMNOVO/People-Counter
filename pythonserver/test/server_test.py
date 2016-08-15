@@ -80,7 +80,7 @@ def rem_json_from_db(file_name):
     json_file.close()
     json_data = simplejson.loads(data)
     for sniffs in json_data:
-        mongo.db.wifi_sniffs.remove(sniffs)
+        mongo.db.wifi_sniffs.delete_one(sniffs)
 
 def get_documents(sniff_type):
     """ TODO: implement for multiple collections """
@@ -88,6 +88,12 @@ def get_documents(sniff_type):
         db = mongo.db.wifi_sniffs
     elif sniff_type == "RANDOMIZED":
         db = mongo.db.invalid_sniffs
+    elif sniff_type == "RANDOMIZED_DISTINCT":
+	#process_sniffs()
+	db = mongo.db.distinct_invalid_sniffs
+    elif sniff_type == "TOTAL":
+	#process_sniffs()
+	db = mongo.db.total_sniffs
     else:
         abort_if_invalid_collection(collection)
 
@@ -122,8 +128,37 @@ def add_sniff(sniff):
     else:
         print "%s SNIFF (%s) DETECTED --> ADDING" % (tag, str(sniff["source"]))
         db.insert(sniff)
+	process_sniff(sniff, tag)
 
-####
+def process_sniff(sniff, sniff_type):
+    """ compares tag data of RANDOMIZED sniffs
+    	to eliminate duplicates, then combines
+	REAL and RANDOMIZED sniffs into a new
+	collection of total_sniffs
+    """
+    #db_total_sniffs = mongo.db.total_sniffs
+    #db_distinct_invalid_sniffs = mongo.db.distinct_invalid_sniffs
+    #db_invalid_sniffs = mongo.db.invalid_sniffs   
+
+    if sniff_type == "REAL":
+	#db_total_sniffs.insert(sniff)
+	mongo.db.total_sniffs.insert_one(sniff)
+    elif sniff_type == "RANDOMIZED":
+	print("TAGSSSSS")
+	print(mongo.db.total_sniffs.find({"tags": sniff["tags"]}))
+	if mongo.db.total_sniffs.find({"tags": sniff["tags"]}).count() > 0: 
+	    mongo.db.invalid_sniffs.update_one({ "source": sniff["source"]}, {"$set": sniff}, upsert=False)
+	    #db_invalid_sniffs.update_one({ "source": sniff["source"]}, {"$set": sniff}, upsert=False)
+	    print "hi"
+            #print mongo.db.invalid_sniff.find({"tags": invalid_sniff["tags"]})
+        else:
+            print "hi1"
+            mongo.db.total_sniffs.insert_one(sniff)
+	    mongo.db.distinct_invalid_sniffs.insert_one(sniff)
+	    #db_total_sniffs.insert(sniff)
+	    #db_distinct_invalid_sniffs.insert(sniff)	        
+        
+###
 
 
 """ Error cases """
@@ -207,7 +242,10 @@ class upload_file(Resource):
 
 # '/db/<string:sniff_type>'
 class db(Resource):
-    # curl http://10.12.1.37:8101/db -X GET -v
+    # curl http://10.12.1.37:8101/db/REAL -X GET -v 
+    # curl http://10.12.1.37:8101/db/RANDOMIZED -X GET -v
+    # curl http://10.12.1.37:8101/db/RANDOMIZED_DISTINCT -X GET -v
+    # curl http://10.12.1.37:8101/db/TOTAL -X GET -v
     def get(self, sniff_type):
         """ return all real of randomized sniffs """
         documents = get_documents(sniff_type)
