@@ -71,6 +71,39 @@
                 getInvalidNum();
             }, 3000);
         }
+	var getTotalNum = function () {
+            $.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/TOTAL",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {
+                    //do what ever with the reply
+                    console.log('success');
+                    console.log(jsonResult);
+                    $("#num-total-mac").html(jsonResult['wifi_sniffs'].length);
+                    var width = $('#num-total-mac').width();
+                    var height = $('#num-total-mac').height();
+                    console.log("THIS WIDTH" + width);
+                    console.log("THIS WIDTH" + height);
+                    $('#num-total-mac').css({
+                        'height': width + 'px'
+                    });
+                    $('#loading_screen').hide();
+                    $('#main_content').show();
+                    
+                },
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+            });
+            setTimeout(function () {
+                getInvalidNum();
+            }, 3000);
+        }	
     </script>
     <style>
         
@@ -162,10 +195,13 @@
         <img id="background" src="./background.jpg">
         <section id="main_content" class="nodisplay">
             <h1 class="title_text nomargin abs_center_text">
-                There are currently <div class="round_background"><span id="num-unique-mac"> 0 </span> </div> users
+                There are currently <div class="round_background"><span id="num-unique-mac"> 0 </span> </div> known users
                 <br/>
-                And <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
-            </h1>
+                Of them <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> are anonymous!
+        	<br/>
+		<br/>
+		There are approximately <div class="round_background"><span id="num-invalid-mac"> 0 </span> </div> total users    
+	</h1>
         </section>
         <section id="loading_screen">
             <h1 class="title_text nomargin abs_center">
