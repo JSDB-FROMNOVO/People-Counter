@@ -1,0 +1,406 @@
+[
+    {
+        "id": 5230
+    },
+    {
+        "source": "90:48:9a:5b:b4:b7", 
+        "timestamp": 1470674782.577394, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.577467, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 13, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "90:48:9a:5b:b4:b7", 
+        "timestamp": 1470674782.577516, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.584837, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 13, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.592659, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.592846, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.593403, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.594504, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.595225, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.595306, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -37, 
+        "type": 1
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.595329, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 9, 
+        "signal_strength": -39, 
+        "type": 1
+    }, 
+    {
+        "source": "0c:8b:fd:b1:e0:a9", 
+        "timestamp": 1470674782.595609, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 11, 
+        "signal_strength": -37, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.595636, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 12, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.60222, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.602251, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.602282, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.602582, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -41, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.602608, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.602634, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.602897, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.60296, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.602986, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 9, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "0c:8b:fd:b1:e0:a9", 
+        "timestamp": 1470674782.607356, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 11, 
+        "signal_strength": -37, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.607425, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 12, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.607445, 
+        "destination": "0c:8b:fd:b1:e0:a9", 
+        "subtype": 13, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.610576, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.610603, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.616837, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.616933, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.616962, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 9, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "90:48:9a:5b:b4:b7", 
+        "timestamp": 1470674782.61706, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.617098, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 13, 
+        "signal_strength": -43, 
+        "type": 1
+    }, 
+    {
+        "source": "90:48:9a:5b:b4:b7", 
+        "timestamp": 1470674782.628021, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.628071, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 13, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "ssid": "nallab", 
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.640493, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 8, 
+        "signal_strength": -43, 
+        "type": 0
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.642212, 
+        "destination": "33:33:00:01:00:02", 
+        "subtype": 0, 
+        "signal_strength": -43, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.643193, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 0, 
+        "signal_strength": -39, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.653346, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.653385, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.653433, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.653463, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 9, 
+        "signal_strength": -47, 
+        "type": 1
+    }, 
+    {
+        "source": "90:48:9a:5b:b4:b7", 
+        "timestamp": 1470674782.66574, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.665783, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 13, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.665942, 
+        "destination": "6c:ad:f8:8a:bb:05", 
+        "subtype": 11, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.666045, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -49, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.666071, 
+        "destination": "6c:ad:f8:8a:bb:05", 
+        "subtype": 8, 
+        "signal_strength": -256, 
+        "type": 2
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.666096, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 9, 
+        "signal_strength": -49, 
+        "type": 1
+    }, 
+    {
+        "source": null, 
+        "timestamp": 1470674782.66751, 
+        "destination": "6c:ad:f8:8a:bb:05", 
+        "subtype": 9, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1470674782.667781, 
+        "destination": "90:48:9a:5b:b4:b7", 
+        "subtype": 11, 
+        "signal_strength": -45, 
+        "type": 1
+    }, 
+    {
+        "source": "00:00:00:00:00:00", 
+        "timestamp": 1470674782.667839, 
+        "destination": "74:44:01:51:62:7c", 
+        "subtype": 12, 
+        "signal_strength": -47, 
+        "type": 1
+    }
+]
