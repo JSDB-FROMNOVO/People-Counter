@@ -214,13 +214,14 @@ def get_total_devices():
     real_count = mongo.db.real_sniffs.count()
     invalid_count = mongo.db.inalid_sniffs.count()
     total_count = real_count + invalid_count	
-    return total_count
-
-def get_real_count():
-    return mongo.db.real_sniffs.count()
-
-def get_invalid_count():
-    return mongo.db.invalid_sniffs.count()
+   
+    count_details = {
+	"total_count": total_count,
+	"real_count": real_count,
+	"invalid_count": invalid_count
+    } 
+   
+    return count_details
 
 def get_ssid_stats():
     ssid_stats = {}
@@ -404,8 +405,6 @@ class db(Resource):
 # '/db/fend/<string:data_req>'
 class db_frontend(Resource):
     # curl http://10.12.1.37:8101/db/fend/total_devices -X GET -v 
-    # curl http://10.12.1.37:8101/db/fend/real_count -X GET -v
-    # curl http://10.12.1.37:8101/db/fend/invalid_count -X GET -v
     # curl http://10.12.1.37:8101/db/fend/vendor -X GET -v
     # curl http://10.12.1.37:8101/db/fend/ssid -X GET -v
     # curl http://10.12.1.37:8101/db/fend/sig_str -X GET -v
@@ -413,10 +412,6 @@ class db_frontend(Resource):
         """ return data requested """
         if data_req == "total_devices":
             return get_total_devices() #10
-	elif data_req == "real_count":
-	    return get_real_count()
-	elif data_req == "invalid_count":
-	    return get_invalid_count()
         elif data_req == "vendor":
             return get_vendor_stats() #{v1: 10, v2: 22, ...}
         elif data_req == "ssid":  
@@ -425,8 +420,7 @@ class db_frontend(Resource):
             return get_sig_str_stats() #{strong:10, good:12, fair:923, poor:21}
  
         #randomized_intervals = get_sig_str() #{phone1: [10s: 3, 20s: 4, ... , 1m: 100], phone2: [...]}
-         
- 
+          
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
