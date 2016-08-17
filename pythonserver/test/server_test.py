@@ -88,12 +88,12 @@ def get_documents(sniff_type):
         db = mongo.db.real_sniffs
     elif sniff_type == "RANDOMIZED":
         db = mongo.db.invalid_sniffs
-    elif sniff_type == "RANDOMIZED_DISTINCT":
-	db = mongo.db.distinct_invalid_sniffs
-    elif sniff_type == "TOTAL":
-	db = mongo.db.total_sniffs
+    #elif sniff_type == "RANDOMIZED_DISTINCT":
+    #	db = mongo.db.distinct_invalid_sniffs
+    #elif sniff_type == "TOTAL":
+    #	db = mongo.db.total_sniffs
     else:
-        abort_if_invalid_collection(collection)
+        abort_if_invalid_collection(db)
 
     output = []
     wifi_sniff_collection = db.find()
@@ -132,33 +132,23 @@ def process_sniff(sniff, sniff_type, action, db):
 	on tag to distinct randomized collection 
     """
  
-    #db_total_sniffs = mongo.db.total_sniffs   
-    #db_distinct_randomized = mongo.db.distinct_invalid_sniffs
     db_invalid_sniffs = mongo.db.invalid_sniffs     
 
-    #distinct_sniff = False
     randomized_detected = False
     if db_invalid_sniffs.find({"tags": sniff["tags"]}).count() > 0:
-	#distinct_sniff = True
 	randomized_detected = True
 		
     if randomized_detected:
-        print "%s SNIFF (%s) ALREADY DETECTED --> ADDING" % (sniff_type, str(sniff["source"]))
+        print "%s SNIFF (%s) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]))
 	updated_sniff = update_randomized_details(get_sniff(db, sniff), sniff)
 	db.update_one({"tags": sniff["tags"]}, {"$set": updated_sniff}, upsert=False)
     elif action == "add":
-        #db_total_sniffs.insert_one(sniff)
-	sniff["ssid_list"] = []
+	sniff = update_for_front_end(sniff, sniff_type) 
 	db.insert_one(sniff)
-	#if distinct_sniff:
-	#    db_distinct_randomized.insert_one(sniff)
     elif action == "update":	
-    	#db_total_sniffs.update_one({"source": sniff["source"]}, {"$set": sniff}, upsert=False)	
-        print "%s SNIFF (%s) ALREADY DETECTED --> UPDATING" % (sniff_type, str(sniff["source"]))
+        print "%s SNIFF (%s) --> UPDATING" % (sniff_type, str(sniff["source"]))
     	updated_sniff = update_ssid_details(get_sniff(db, sniff), sniff)
 	db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)
-        #if distinct_sniff:
-    	#    db_distinct_randomized.update_one({"source": sniff["source"]}, {"$set": sniff}, upsert=False)
     
 def get_sniff(db, sniff_search):
    for sniff in db.find():
@@ -168,26 +158,31 @@ def get_sniff(db, sniff_search):
 def update_randomized_details(updated_sniff, sniff):
     """ stores timestamp of randomized mac to 
 	mac with corresponding tag 
-    """
-    if "randomized_macs" not in updated_sniff.keys():
-	updated_sniff["randomized_macs"] = []
-    
+    """ 
     randomized_details = {}
     randomized_details["mac"] = sniff["source"]
     randomized_details["timestamp"] = sniff["timestamp"]
     randomized_details["server_timestamp"] = sniff["server_timestamp"]	 
     updated_sniff["randomized_macs"].append(randomized_details)
+    #update signal strength of first randomized for front end 
+    updated_sniff["signal_strength"] = sniff["signal_strength"]
     return updated_sniff    
 
 def update_ssid_details(updated_sniff, sniff):
-    #if "ssid_list" not in updated_sniff.keys():
-	#updated_sniff["ssid_list"] = []
-
     updated_sniff["ssid_list"].append(sniff["ssid"])
     return updated_sniff
 
-###
-
+def update_for_front_end(sniff, sniff_type):  
+    if sniff_type == "REAL":
+        sniff["ssid_list"] = sniff["ssid"]
+        sniff["vendor_list"] = sniff["vendor"]
+        sniff["timestamp_list"] = sniff["timestamp"]
+    elif sniff_type == "RANDOMIZED":
+	sniff["randomized_macs"] = []
+    return sniff
+	
+### 
+    
 """ Front end data processing """
 
 def get_total_devices():
@@ -224,7 +219,44 @@ def get_ssid_stats():
     
     return ssid_stats
 
+def get_vendor_stats():
+    vendor_stats = {}
+    for sniff in mongo.db.real_sniffs.find():
+	if "vendor_list" not in sniff.keys():
+	   continue
+	for vendor in sniff["vendor_list"]:
+	    key = str(vendor)
+	    if vendor not in vendor_stats.keys():
+		vendor_stats[key] = 1
+	    else:
+		vendor_stats[key] += 1
 
+def get_sig_str_stats():
+    sig_str_stats = {
+	"strong": 0,
+	"good": 0,
+	"fair": 0,
+	"poor": 0
+    }
+    for sniff in mongo.db.real_sniffs.find():
+	sig_str_stats = process_sig_str(sniff, sig_str_stats)
+    
+    for sniff in mongo.db.invalid_sniffs.find():
+	sig_str_stats = process_sig_str(sniff, sig_str_stats)
+    
+    return sig_str_stats
+
+def process_sig_str(sniff, sig_str_stats):
+    ss = sniff["signal_strength"]
+    if ss >= -50:
+        sig_str_stats["strong"] += 1
+    elif ss < -50 and ss >= -60:
+        sig_str_stats["good"] += 1
+    elif ss < -60 and sig_str >= -70:
+        sig_str_stats["fair"] += 1
+    else:
+        sig_str_stats["poor"] += 1
+    return sig_str_stats
 
 """ Error cases """
 
@@ -309,35 +341,42 @@ class upload_file(Resource):
 class db(Resource):
     # curl http://10.12.1.37:8101/db/REAL -X GET -v 
     # curl http://10.12.1.37:8101/db/RANDOMIZED -X GET -v
-    # curl http://10.12.1.37:8101/db/RANDOMIZED_DISTINCT -X GET -v
-    # curl http://10.12.1.37:8101/db/TOTAL -X GET -v
-    def get(self, data_req):
-    #def get(self, sniff_type):
-        """ return data requested """
-        #documents = get_documents(sniff_type)
-        #return jsonify({"wifi_sniffs" : documents})
-	if data_req == "total_devices":
-	    total_devices = get_total_devices() #10
-	    return total_devices
-	elif data_req == "ssid_stats":
-	    ssid_stats = get_ssid_stats() #{v1: 10, v2: 22, ...}
-	    return ssid_stats
-	#ssid_stats = get_ssid_stats() #{strong:10, good:12, fair:923, poor:21}
-	#sig_str_stats = get_sig_str() #{phone1: [10s: 3, 20s: 4, ... , 1m: 100], phone2: [...]}
+    def get(self, sniff_type):
+        """ return database """
+        documents = get_documents(sniff_type)
+        return jsonify({"wifi_sniffs" : documents})
 	 
-
-    def post(self, sniff_type):
-	#documents = get_documents(sniff_type)
-        #return jsonify({"wifi_sniffs" : documents})	
+    def post(self, sniff_type):	
 	resp = Response("")
 	resp.headers['Access-Control-Allow-Origin'] = '*'
 	return resp
 
+# '/db/fend/<string:data_req>'
+class db_frontend(Resource):
+    # curl http://10.12.1.37:8101/db/fend/total_devices -X GET -v 
+    # curl http://10.12.1.37:8101/db/fend/vendor -X GET -v
+    # curl http://10.12.1.37:8101/db/fend/ssid -X GET -v
+    # curl http://10.12.1.37:8101/db/fend/sig_str -X GET -v
+    def get(self, data_req):
+        """ return data requested """
+        if data_req == "total_devices":
+            return get_total_devices() #10
+        elif data_req == "vendor":
+            return get_vendor_stats() #{v1: 10, v2: 22, ...}
+        elif data_req == "ssid":  
+            return get_ssid_stats() #{strong:10, good:12, fair:923, poor:21}    
+        elif data_req == "sig_str":
+            return get_sig_str_stats() #{strong:10, good:12, fair:923, poor:21}
+ 
+        #randomized_intervals = get_sig_str() #{phone1: [10s: 3, 20s: 4, ... , 1m: 100], phone2: [...]}
+         
+ 
+
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
 api.add_resource(upload_file, '/upload/<int:db>/<string:file_name>')
-#api.add_resource(db, '/db/<string:sniff_type>')
-api.add_resource(db, '/db/<string:data_req>')
+api.add_resource(db, '/db/<string:sniff_type>')
+api.add_resource(db_frontend, '/db/fend/<string:data_req>')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8101, debug=True)
