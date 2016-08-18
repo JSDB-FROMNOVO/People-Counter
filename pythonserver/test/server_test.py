@@ -133,35 +133,35 @@ def process_sniff(sniff, sniff_type, action, db):
     """
  
     db_invalid_sniffs = mongo.db.invalid_sniffs     
-
+    
     randomized_detected = False
     if db_invalid_sniffs.find({"tags": sniff["tags"]}).count() > 0:
-	randomized_detected = True
+        randomized_detected = True
 		
     if randomized_detected:
-	updated_sniff = update_randomized_details(get_sniff(db, sniff), sniff)
-	db.update_one({"tags": sniff["tags"]}, {"$set": updated_sniff}, upsert=False)
+        updated_sniff = update_randomized_details(get_sniff(db, sniff), sniff)
+        db.update_one({"tags": sniff["tags"]}, {"$set": updated_sniff}, upsert=False)
     elif action == "add":
         print "%s SNIFF (%s) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]))
-	sniff = update_for_front_end(sniff, sniff_type) 
-	db.insert_one(sniff)
+        sniff = update_for_front_end(sniff, sniff_type) 
+        db.insert_one(sniff)
     elif action == "update":	
         print "%s SNIFF (%s) --> UPDATING" % (sniff_type, str(sniff["source"]))
     	updated_sniff = update_real_details(get_sniff(db, sniff), sniff)
-	db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)
+        db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)
     
 def get_sniff(db, sniff_search):
-   for sniff in db.find():
-	if sniff["source"] == sniff_search["source"]:
-	    return sniff
+    for sniff in db.find():
+        if sniff["source"] == sniff_search["source"]:
+            return sniff
 
 def update_randomized_details(updated_sniff, sniff):
     """ stores timestamp of randomized mac to 
 	mac with corresponding tag 
     """ 
     randomized_details = {
-	"mac": str(sniff["source"]),
-	"timestamp": str(sniff["timestamp"])
+	   "mac": str(sniff["source"]),
+	   "timestamp": str(sniff["timestamp"])
     }
     updated_sniff["randomized_macs"].append(randomized_details)
     #update signal strength of first randomized for front end 
@@ -170,10 +170,9 @@ def update_randomized_details(updated_sniff, sniff):
 
 def update_real_details(updated_sniff, sniff):
     if sniff["ssid"] == "":
-	ssid = "None"
+        ssid = "None"
     else:
-	ssid = sniff["ssid"]
-
+        ssid = sniff["ssid"]
     updated_sniff["ssid_list"].append(str(ssid))
     updated_sniff["timestamp_list"].append(sniff["timestamp"])
     return updated_sniff
@@ -184,31 +183,31 @@ def update_for_front_end(sniff, sniff_type):
             ssid = "None"
         else:
             ssid = sniff["ssid"]
-	
-	sniff["ssid_list"] = [ssid]
+        sniff["ssid_list"] = [ssid]
         sniff["vendor_list"] = [sniff["vendor"]]
         sniff["timestamp_list"] = [sniff["timestamp"]]
     elif sniff_type == "RANDOMIZED":
-	sniff["randomized_macs"] = []
+        sniff["randomized_macs"] = []
     return sniff
 	
 ### 
     
 """ Front end data processing """
 
-update_timestamp = {
+service_timestamp = {
     "total_devices": [],
     "ssid": [],
     "vendor": [],
-    "sig_str": []
+    "sig_str": [],
+    "last_update": None 
 }
 
-#get_service = {
-#    "total_devices": get_total_devices(),
-#    "ssid": get_ssid_stats(),
-#    "vendor": get_vendor_stats(),
-#    "sig_str": get_sig_str_stats()
-#}
+get_service = {
+    "total_devices": None,
+    "ssid": None,
+    "vendor": None,
+    "sig_str": None
+}
 
 def get_total_devices():
     real_count = mongo.db.real_sniffs.count()
@@ -216,9 +215,9 @@ def get_total_devices():
     total_count = real_count + invalid_count	
    
     count_details = {
-	"total_count": total_count,
-	"real_count": real_count,
-	"invalid_count": invalid_count
+        "total_count": total_count,
+        "real_count": real_count,
+        "invalid_count": invalid_count
     } 
    
     return count_details
@@ -267,16 +266,16 @@ def get_vendor_stats():
 
 def get_sig_str_stats():
     sig_str_stats = {
-	"strong": 0,
-	"good": 0,
-	"fair": 0,
-	"poor": 0
+        "strong": 0,
+        "good": 0,
+        "fair": 0,
+        "poor": 0
     }
     for sniff in mongo.db.real_sniffs.find():
-	sig_str_stats = process_sig_str(sniff, sig_str_stats)
+        sig_str_stats = process_sig_str(sniff, sig_str_stats)
     
     for sniff in mongo.db.invalid_sniffs.find():
-	sig_str_stats = process_sig_str(sniff, sig_str_stats)
+        sig_str_stats = process_sig_str(sniff, sig_str_stats)
         
     return sig_str_stats
 
@@ -292,21 +291,69 @@ def process_sig_str(sniff, sig_str_stats):
         sig_str_stats["poor"] += 1
     return sig_str_stats
 
-def get_last_updated(data_req):
-    """ return when service was last updated """
-    global update_timestamp 
-    return update_timestamp[data_req]
+#randomized_intervals = get_randomized_intervals() #{phone1: {10s: 3, 20s: 4, ... , 1m: 100}, phone2: {...}, ...}
 
-def get_service_data(data_req):
-    global update_timestamp
+def get_randomized_intervals():
+    """ 
+        returns lifecyle of each randomized 
+        mac sent by each phone that is 
+        randomizing macs 
+    """
+    randomized_intervals = {}
+    time_intervals = {10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 80: 0, 90: 0, 100: 0}
+    for sniff in mongo.db.invalid_sniffs.find():
+        source = sniff["source"]
+        randomized_intervals[source] = time_intervals
+        
+        if len(sniff["randomized_macs"] == 1):
+            sniff["randomized_macs"][0]["timestamp"] - sniff["timestamp"]
+        for random_sniffs in sniff["randomized_macs"]: 
+
+
+def update_services():
+    """ 
+        update all services in global get_service
+        variable if get call is 5 sec > latest 
+        update
+    """
     global get_service
 
-    last_updated = update_timestamp[data_req][-1]
-    dt = str(datetime.now())
-    current_time = dt.split()[1]
+    total_devices = get_total_devices()
+    ssid = get_ssid_stats()
+    vendor = get_vendor_stats()
+    sig_str = get_sig_str_stats()
+
+    get_service["total_devices"] = total_devices
+    get_service["ssid"] = ssid
+    get_service["vendor"] = vendor
+    get_service["sig_str"] = sig_str
+
+def update_timestamp(cur_time, data_req):
+    global service_timestamp
     
-    if (current_time - last_updated) > 5:
-	update_service(data_req)	    
+    service_timestamp[data_req].append(cur_time)
+    service_timestamp["last_update"] = cur_time
+
+def get_service_data(data_req):
+    global service_timestamp
+    global get_service
+
+    if get_service[data_req] == None:
+        update_services()
+
+    updated_time = service_timestamp["last_update"]
+    dt = str(datetime.now())
+    cur_time = dt.split()[1]
+    
+    #update servies 5 seconds after last update
+    if (cur_time - updated_time) > 5:
+	   update_timestamp(cur_time, data_req)
+       update_service()
+       data = get_service[data_req]
+    else:
+        data = get_service[data_req]
+
+    return data
 
 
 """ Error cases """
@@ -410,15 +457,18 @@ class db_frontend(Resource):
     # curl http://10.12.1.37:8101/db/fend/sig_str -X GET -v
     def get(self, data_req):
         """ return data requested """
-        if data_req == "total_devices":
-            return get_total_devices() #10
-        elif data_req == "vendor":
-            return get_vendor_stats() #{v1: 10, v2: 22, ...}
-        elif data_req == "ssid":  
-            return get_ssid_stats() #{s1:10, s2:12, s:923, s:21}    
-        elif data_req == "sig_str":
-            return get_sig_str_stats() #{strong:10, good:12, fair:923, poor:21}
- 
+        # if data_req == "total_devices":
+        #     return get_total_devices() #10
+        # elif data_req == "vendor":
+        #     return get_vendor_stats() #{v1: 10, v2: 22, ...}
+        # elif data_req == "ssid":  
+        #     return get_ssid_stats() #{s1:10, s2:12, s:923, s:21}    
+        # elif data_req == "sig_str":
+        #     return get_sig_str_stats() #{strong:10, good:12, fair:923, poor:21}
+        
+        data = get_service_data(data_req)
+        return data
+        
         #randomized_intervals = get_sig_str() #{phone1: [10s: 3, 20s: 4, ... , 1m: 100], phone2: [...]}
           
 
