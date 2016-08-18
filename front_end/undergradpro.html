@@ -2,380 +2,76 @@
 <html lang="en">
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="./jquery-2.0.0.min.js"></script>
-	<!--Load the AJAX API-->
+    <!--Load the AJAX API-->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	
-    <script>
-        $(document).ready(function () {
-            getNumberDevices();
-			getSignalStrength();
-			
-			google.charts.load('current', {'packages':['corechart']});
-			google.charts.setOnLoadCallback(getVendorChart);
-			google.charts.setOnLoadCallback(getSSIDChart);
-			//google.charts.setOnLoadCallback(getLifetimeChart);
-        });
-		
-		var getNumberDevices = function () {
-			//get the number of real MACs, randomized MACs, and total devices
-			 $.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/fend/total_devices",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {		
-					
-					$("#num-unique-mac").html(jsonResult['real_count']);
-                    width = $('#num-unique-mac').width();
-                    $('#num-unique-mac').css({
-                        'height': width + 'px'
-                    });
-					
-					$("#num-invalid-mac").html(jsonResult['invalid_count']);
-                    var width = $('#num-invalid-mac').width();
-                    $('#num-invalid-mac').css({
-                        'height': width + 'px'
-                    });
-					
-                    
-                    $("#num-total-mac").html(jsonResult['total_count']);
-					var width = $('#num-total-mac').width();
-                    $('#num-total-mac').css({
-                        'height': width + 'px'
-                    });
-                    
-                    $('#loading_screen').hide();
-                    $('#main_content').show();
-                },
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-            });
-            setTimeout(function () {
-                getNumberDevices();
-            }, 3000);
-		}
-		
-		var getSignalStrength = function () {
-			//get the number of real MACs, randomized MACs, and total devices
-			 $.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/fend/sig_str",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {	
-				
-					// Create the data table.
-					var data = new google.visualization.DataTable();
-					data.addColumn('string', 'Strength');
-					data.addColumn('number', '# Devices');
-					data.addRows([
-					  ['Strong', jsonResult['strong']],
-					  ['Good', jsonResult['good']],
-					  ['Fair', jsonResult['fair']],
-					  ['Poor', jsonResult['poor']]
-					]);
-					  
-					// Set chart options
-					var options = {'title':'Signal Strength of Devices',
-									'pieHole':0.4,
-								   'width':800,
-								   'height':600,
-								   slices: {
-										0: { color: 'green' },
-										1: { color: 'lightgreen' },
-										2: { color: 'orange' },
-										3: { color: 'red' }
-									  }
-					};
+    <script type="text/javascript" src="./app/js/app.js"></script>
+    <link rel="stylesheet" type="text/css" href="./app/css/main_page.css">
 
-					// Instantiate and draw our chart, passing in some options.
-					var sigstr_chart = new google.visualization.PieChart(document.getElementById('sig_str_div'));
-					sigstr_chart.draw(data, options);
-					
-                    
-                    $('#loading_screen').hide();
-                    $('#main_content').show();
-                },
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-            });
-            setTimeout(function () {
-                getSignalStrength();
-            }, 3000);
-		}
-        
-		var getVendorChart = function() {
-			$.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/fend/vendor",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {	
-					// Create the data table.
-					var data = new google.visualization.DataTable();
-					data.addColumn('string', 'Vendor');
-					data.addColumn('number', '# Devices');
-					
-					$.each(jsonResult, function(key, value) {
-						var elem = [key, value]
-						data.addRows([elem])
-					})
-
-					// Set chart options
-					var options = {'title':'Devices per Vendor (only counts devices with non-randomized MACS)',
-									'pieHole':0.4,
-								   'width':800,
-								   'height':600};
-
-					// Instantiate and draw our chart, passing in some options.
-					var vendor_chart = new google.visualization.PieChart(document.getElementById('vendor_chart_div'));
-					vendor_chart.draw(data, options);
-					
-					$('#loading_screen').hide();
-					$('#main_content').show();
-					
-				},
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-			});
-            setTimeout(function () {
-                getVendorChart();
-            }, 3000);
-		}
-		
-		var getSSIDChart = function() {
-			$.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/fend/ssid",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {	
-					// Create the data table.
-					var data = new google.visualization.DataTable();
-					data.addColumn('string', 'SSID');
-					data.addColumn('number', '# Devices');
-					
-					$.each(jsonResult, function(key, value) {
-						if (key != "None") {
-							var elem = [key, value]
-							data.addRows([elem])
-						}
-					})
-
-					// Set chart options
-					var options = {'title':'Devices per SSID (how many devices are probing for this SSID)',
-									'pieHole':0.4,
-								   'width':800,
-								   'height':600};
-
-					// Instantiate and draw our chart, passing in some options.
-					var ssid_chart = new google.visualization.PieChart(document.getElementById('ssid_chart_div'));
-					ssid_chart.draw(data, options);
-					
-					$('#loading_screen').hide();
-					$('#main_content').show();
-					
-				},
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-			});
-            setTimeout(function () {
-                getSSIDChart();
-            }, 3000);
-		}
-		
-		var getLifetimeChart = function() {
-			$.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/lifetime",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {	
-					// Create the data table.
-					var data = new google.visualization.DataTable();
-					data.addColumn('string', 'Time (s)');
-					data.addColumn('number', 'MACs');
-					data.addRows([
-					  jsonResult
-					]);
-
-					// Set chart options
-					var options = {
-						title: "Lifetime of Randomized MAC addresses",
-						width: 600,
-						height: 1000,
-						bar: {groupWidth: "95%"},
-						legend: { position: "none" },
-					  };
-
-					// Instantiate and draw our chart, passing in some options.
-					var lifetime_chart = new google.visualization.BarChart(document.getElementById('lifetime_bar_div'));
-					lifetime_chart.draw(data, options);
-					
-					$('#loading_screen').hide();
-					$('#main_content').show();
-					
-				},
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-			});
-            setTimeout(function () {
-                getLifetimeChart();
-            }, 3000);
-		}
-    </script>
-    <style>
-        
-        .hideoverflow{
-            overflow: scroll;
-        }
-        .section#main {
-            text-align: center;
-        }
-        
-        .title_text {
-            text-align: center;
-            font-weight: 100;
-            font-size: 250%;
-            z-index: 20;
-        }
-        
-        .global_font {
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
-        
-        .nomargin {
-            margin: 0;
-        }
-        
-        .abs_center {
-            width: 500px;
-            height: 50px;
-            z-index: 20;
-            max-height: 100%;
-            max-width: 100%;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            bottom: 0;
-            margin: auto;
-        }
-        
-        .abs_center_text{
-            width: 500px;
-            height: 50px;
-            z-index: 20;
-            max-height: 100%;
-            max-width: 100%;
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: -15%;
-            bottom: 0;
-            margin: auto;
-        }
-        #num-unique-mac {
-            font-weight: 200;
-        }
-        
-        #num-invalid-mac {
-            font-weight: 200;
-        }
-        #num-total-mac {
-            font-weight: 200;
-        }
-        
-        #background {
-           background-size: 100% 100%;
-        }
-        
-        .round_background_blue {
-            display: inline-block;
-            background-color: #34495e;
-            border-radius: 50%;
-            color: #ffffff;
-            padding: 14px;
-            min-width: 50px;
-        }
-        
-        .round_background_green {
-            display: inline-block;
-            background-color: #16a085;
-            border-radius: 50%;
-            color: #ffffff;
-            padding: 14px;
-            min-width: 50px;
-        }
-        
-        .round_background_orange {
-            display: inline-block;
-            background-color: #f39c12;
-            border-radius: 50%;
-            color: #ffffff;
-            padding: 14px;
-            min-width: 50px;
-        }
-        
-        #loading_screen{
-            background-color: black;
-/*            opacity: 0.5;*/
-            z-index: 50;
-            height: 100%;
-            width: 100%;
-        }
-        
-        .nodisplay{
-            display: none;
-        }
-    </style>
 </head>
 
 <body class="nomargin hideoverflow">
     <section id="main" class="global_font">
-	
-		<!--
+
+        <section>
+            <section class="fix-header">
+                <ul>
+                    <li>
+                        <a href="#main_content">Main</a>
+                    </li>
+                    <li>
+                        <a href="#sig_str_sec">Signal Strength</a>
+                    </li>
+                    <li>
+                        <a href="#vendor_chart_sec">Vendor</a>
+                    </li>
+                    <li>
+                        <a href="#ssid_chart_sec">SSID</a>
+                    </li>
+                </ul>
+            </section>
+        </section>
+
+        <!--
         <img id="background" src="./background.jpg">
 		-->
-		
-        <section id="main_content" class="nodisplay">
-            <h1 class="title_text nomargin abs_center_text">
-                There are currently <div class="round_background_green"><span id="num-unique-mac"> 0 </span> </div> devices not using a real MAC address.
-                <br/>
-                And <div class="round_background_orange"><span id="num-invalid-mac"> 0 </span> </div> devices using randomized MAC addresses!
-                <br/>
-                Total <div class="round_background_blue"><span id="num-total-mac"> 0 </span> </div> users!
-				
-				<br/><br/>
-				<div id="sig_str_div"></div>
-				<br/><br/>
-				<div id="vendor_chart_div"></div>
-				<br/><br/>
-				<div id="ssid_chart_div"></div>
-				<br/><br/>
-				<div id="lifetime_bar_div"></div>=
-            </h1>
+
+        <section id="main_content" class="nodisplay title_text nomargin">
+            <section class="title_section grey_blk">
+                <h1 class="subtitle_text">Undergrad Project</h1> There are currently
+                <div class="round_background_green"><span id="num-unique-mac"> 0 </span> </div> devices not using a real MAC address.
+                <br/> And
+                <div class="round_background_orange"><span id="num-invalid-mac"> 0 </span> </div> devices using randomized MAC addresses!
+                <br/> Total
+                <div class="round_background_blue"><span id="num-total-mac"> 0 </span> </div> users!
+            </section>
+            <section id="sig_str_sec" class="white_blk">
+                <h1 class="subtitle_text">Signal Strength of Devices</h1>
+                <div class="centered">
+                    <div id="sig_str_div"></div>
+                </div>
+            </section>
+            <section id="vendor_chart_sec" class="grey_blk">
+                <h1 class="subtitle_text nomargin_bottom">Devices per Vendor</h1>
+                <h1 class="subsubtitle_text nomargin_top">only counts devices with non-randomized MACS</h1>
+                <div class="centered">
+                    <div id="vendor_chart_div"></div>
+                </div>
+            </section>
+            <section id="ssid_chart_sec" class="white_blk">
+                <h1 class="subtitle_text nomargin_bottom">Devices per SSID</h1>
+                <h1 class="subsubtitle_text nomargin_top">how many devices are probing for this SSID</h1>
+                <div class="centered">
+                    <div id="ssid_chart_div"></div>
+                </div>
+            </section>
+            <section id="lifetime_var_sec" class="grey_blk">
+                <h1 class="subtitle_text">Lifetime per device</h1>
+                <div class="centered">
+                    <div id="lifetime_bar_div"></div>
+                </div>
+            </section>
         </section>
         <section id="loading_screen">
             <h1 class="title_text nomargin abs_center">
