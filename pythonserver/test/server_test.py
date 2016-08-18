@@ -88,13 +88,7 @@ def get_documents(sniff_type):
         db = mongo.db.real_sniffs
     elif sniff_type == "RANDOMIZED":
         db = mongo.db.invalid_sniffs
-    #elif sniff_type == "RANDOMIZED_DISTINCT":
-    #	db = mongo.db.distinct_invalid_sniffs
-    #elif sniff_type == "TOTAL":
-    #	db = mongo.db.total_sniffs
-    #else:
     #    abort_if_invalid_collection(db)
-
     output = []
     wifi_sniff_collection = db.find()
     for sniff in wifi_sniff_collection:
@@ -183,8 +177,7 @@ def update_for_front_end(sniff, sniff_type):
         if sniff["ssid"] == "":
             ssid = "None"
         else:
-            ssid = sniff["ssid"]
-	
+            ssid = sniff["ssid"]	
 	sniff["ssid_list"] = [ssid]
         sniff["vendor_list"] = [sniff["vendor"]]
         sniff["timestamp_list"] = [sniff["timestamp"]]
@@ -203,12 +196,12 @@ update_timestamp = {
     "sig_str": []
 }
 
-#get_service = {
-#    "total_devices": get_total_devices(),
-#    "ssid": get_ssid_stats(),
-#    "vendor": get_vendor_stats(),
-#    "sig_str": get_sig_str_stats()
-#}
+get_service = {
+    "total_devices": None,
+    "ssid": None,
+    "vendor": None,
+    "sig_str": None
+}
 
 def get_total_devices():
     real_count = mongo.db.real_sniffs.count()
