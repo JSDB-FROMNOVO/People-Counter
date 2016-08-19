@@ -50,7 +50,7 @@ var getInfo = function () {
     });
     setTimeout(function () {
         getInfo();
-    }, 3000);
+    }, 5000);
 }
 var getNumberDevices = function () {
     //get the number of real MACs, randomized MACs, and total devices
@@ -205,6 +205,7 @@ var updateVendorChart = function (jsonResult) {
 
     // Set chart options
     var options = {
+        backgroundColor: 'transparent',
         'pieHole': 0.4,
         'width': 800,
         'height': 600
