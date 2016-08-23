@@ -22,10 +22,11 @@ all_files = {
     "JSON_FILES": [],
     "CAP_FILES": [],
     "BASH_FILES": [],
-    "PYTHON_FILES": []
+    "PYTHON_FILES": [],
+    "ZIP_FILES": []
 }
 
-MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES"}
+MAP = {"txt": "TEXT_FILES", "json": "JSON_FILES", "cap": "CAP_FILES", "sh": "BASH_FILES", "py": "PYTHON_FILES", "zip": "ZIP_FILES"}
 
 def file_ext(file_name):
     extension = file_name.rsplit('.', 1)[1]

@@ -3,74 +3,51 @@
 
 <head>
     <script src="./jquery-2.0.0.min.js"></script>
+	<!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	
     <script>
         $(document).ready(function () {
-            getNum();
-            getInvalidNum();
+            getNumberDevices();
+			getSignalStrength();
+			
+			google.charts.load('current', {'packages':['corechart']});
+			google.charts.setOnLoadCallback(getVendorChart);
+			google.charts.setOnLoadCallback(getSSIDChart);
+			//google.charts.setOnLoadCallback(getLifetimeChart);
         });
-        
-        var validUser = 0;
-        var invalidUser = 0;
-        
-        var getNum = function () {
-            $.ajax({
+		
+		var getNumberDevices = function () {
+			//get the number of real MACs, randomized MACs, and total devices
+			 $.ajax({
                 type: "GET",
-                url: "http://142.150.208.226:8101/db/REAL",
+                url: "http://142.150.208.226:8101/db/fend/total_devices",
                 dataType: 'json',
                 crossDomain: true,
                 data: {},
-                success: function (jsonResult) {
-                    //do what ever with the reply
-                    console.log('success');
-                    console.log(jsonResult);
-                    $("#num-unique-mac").html(jsonResult['wifi_sniffs'].length);
+                success: function (jsonResult) {		
+					
+					$("#num-unique-mac").html(jsonResult['real_count']);
                     width = $('#num-unique-mac').width();
                     $('#num-unique-mac').css({
                         'height': width + 'px'
                     });
-                    
-                    validUser = jsonResult['wifi_sniffs'].length;
-                    updateTotalUser();
-                    
-                    $('#loading_screen').hide();
-                    $('#main_content').show();
-                },
-                error: function (jqXHR, textStatus) {
-                    //handle error
-                    console.log('err');
-                    console.log(jqXHR);
-                }
-            });
-            setTimeout(function () {
-                getNum();
-            }, 3000);
-        }
-        var getInvalidNum = function () {
-            $.ajax({
-                type: "GET",
-                url: "http://142.150.208.226:8101/db/RANDOMIZED_DISTINCT",
-                dataType: 'json',
-                crossDomain: true,
-                data: {},
-                success: function (jsonResult) {
-                    //do what ever with the reply
-                    console.log('success');
-                    console.log(jsonResult);
-                    $("#num-invalid-mac").html(jsonResult['wifi_sniffs'].length);
+					
+					$("#num-invalid-mac").html(jsonResult['invalid_count']);
                     var width = $('#num-invalid-mac').width();
-                    var height = $('#num-invalid-mac').height();
-                    console.log("THIS WIDTH" + width);
-                    console.log("THIS WIDTH" + height);
                     $('#num-invalid-mac').css({
                         'height': width + 'px'
                     });
+					
                     
-                    invalidUser = jsonResult['wifi_sniffs'].length
-                    updateTotalUser();
+                    $("#num-total-mac").html(jsonResult['total_count']);
+					var width = $('#num-total-mac').width();
+                    $('#num-total-mac').css({
+                        'height': width + 'px'
+                    });
                     
                     $('#loading_screen').hide();
                     $('#main_content').show();
-                    
                 },
                 error: function (jqXHR, textStatus) {
                     //handle error
@@ -79,18 +56,199 @@
                 }
             });
             setTimeout(function () {
-                getInvalidNum();
+                getNumberDevices();
             }, 3000);
-        };
+		}
+		
+		var getSignalStrength = function () {
+			//get the number of real MACs, randomized MACs, and total devices
+			 $.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/fend/sig_str",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {	
+				
+					// Create the data table.
+					var data = new google.visualization.DataTable();
+					data.addColumn('string', 'Strength');
+					data.addColumn('number', '# Devices');
+					data.addRows([
+					  ['Strong', jsonResult['strong']],
+					  ['Good', jsonResult['good']],
+					  ['Fair', jsonResult['fair']],
+					  ['Poor', jsonResult['poor']]
+					]);
+					  
+					// Set chart options
+					var options = {'title':'Signal Strength of Devices',
+									'pieHole':0.4,
+								   'width':800,
+								   'height':600,
+								   slices: {
+										0: { color: 'green' },
+										1: { color: 'lightgreen' },
+										2: { color: 'orange' },
+										3: { color: 'red' }
+									  }
+					};
+
+					// Instantiate and draw our chart, passing in some options.
+					var sigstr_chart = new google.visualization.PieChart(document.getElementById('sig_str_div'));
+					sigstr_chart.draw(data, options);
+					
+                    
+                    $('#loading_screen').hide();
+                    $('#main_content').show();
+                },
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+            });
+            setTimeout(function () {
+                getSignalStrength();
+            }, 3000);
+		}
         
-        var updateTotalUser = function(){
-            $("#num-total-mac").html(validUser + invalidUser);
-        }
+		var getVendorChart = function() {
+			$.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/fend/vendor",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {	
+					// Create the data table.
+					var data = new google.visualization.DataTable();
+					data.addColumn('string', 'Vendor');
+					data.addColumn('number', '# Devices');
+					
+					$.each(jsonResult, function(key, value) {
+						var elem = [key, value]
+						data.addRows([elem])
+					})
+
+					// Set chart options
+					var options = {'title':'Devices per Vendor (only counts devices with non-randomized MACS)',
+									'pieHole':0.4,
+								   'width':800,
+								   'height':600};
+
+					// Instantiate and draw our chart, passing in some options.
+					var vendor_chart = new google.visualization.PieChart(document.getElementById('vendor_chart_div'));
+					vendor_chart.draw(data, options);
+					
+					$('#loading_screen').hide();
+					$('#main_content').show();
+					
+				},
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+			});
+            setTimeout(function () {
+                getVendorChart();
+            }, 3000);
+		}
+		
+		var getSSIDChart = function() {
+			$.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/fend/ssid",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {	
+					// Create the data table.
+					var data = new google.visualization.DataTable();
+					data.addColumn('string', 'SSID');
+					data.addColumn('number', '# Devices');
+					
+					$.each(jsonResult, function(key, value) {
+						if (key != "None") {
+							var elem = [key, value]
+							data.addRows([elem])
+						}
+					})
+
+					// Set chart options
+					var options = {'title':'Devices per SSID (how many devices are probing for this SSID)',
+									'pieHole':0.4,
+								   'width':800,
+								   'height':600};
+
+					// Instantiate and draw our chart, passing in some options.
+					var ssid_chart = new google.visualization.PieChart(document.getElementById('ssid_chart_div'));
+					ssid_chart.draw(data, options);
+					
+					$('#loading_screen').hide();
+					$('#main_content').show();
+					
+				},
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+			});
+            setTimeout(function () {
+                getSSIDChart();
+            }, 3000);
+		}
+		
+		var getLifetimeChart = function() {
+			$.ajax({
+                type: "GET",
+                url: "http://142.150.208.226:8101/db/lifetime",
+                dataType: 'json',
+                crossDomain: true,
+                data: {},
+                success: function (jsonResult) {	
+					// Create the data table.
+					var data = new google.visualization.DataTable();
+					data.addColumn('string', 'Time (s)');
+					data.addColumn('number', 'MACs');
+					data.addRows([
+					  jsonResult
+					]);
+
+					// Set chart options
+					var options = {
+						title: "Lifetime of Randomized MAC addresses",
+						width: 600,
+						height: 1000,
+						bar: {groupWidth: "95%"},
+						legend: { position: "none" },
+					  };
+
+					// Instantiate and draw our chart, passing in some options.
+					var lifetime_chart = new google.visualization.BarChart(document.getElementById('lifetime_bar_div'));
+					lifetime_chart.draw(data, options);
+					
+					$('#loading_screen').hide();
+					$('#main_content').show();
+					
+				},
+                error: function (jqXHR, textStatus) {
+                    //handle error
+                    console.log('err');
+                    console.log(jqXHR);
+                }
+			});
+            setTimeout(function () {
+                getLifetimeChart();
+            }, 3000);
+		}
     </script>
     <style>
         
         .hideoverflow{
-            overflow: hidden;
+            overflow: scroll;
         }
         .section#main {
             text-align: center;
@@ -196,14 +354,27 @@
 
 <body class="nomargin hideoverflow">
     <section id="main" class="global_font">
+	
+		<!--
         <img id="background" src="./background.jpg">
+		-->
+		
         <section id="main_content" class="nodisplay">
             <h1 class="title_text nomargin abs_center_text">
-                There are currently <div class="round_background_green"><span id="num-unique-mac"> 0 </span> </div> devices
+                There are currently <div class="round_background_green"><span id="num-unique-mac"> 0 </span> </div> devices not using a real MAC address.
                 <br/>
-                And <div class="round_background_orange"><span id="num-invalid-mac"> 0 </span> </div> anonymous!
+                And <div class="round_background_orange"><span id="num-invalid-mac"> 0 </span> </div> devices using randomized MAC addresses!
                 <br/>
-                Total <div class="round_background_blue"><span id="num-total-mac"> 0 </span> </div> devices!
+                Total <div class="round_background_blue"><span id="num-total-mac"> 0 </span> </div> users!
+				
+				<br/><br/>
+				<div id="sig_str_div"></div>
+				<br/><br/>
+				<div id="vendor_chart_div"></div>
+				<br/><br/>
+				<div id="ssid_chart_div"></div>
+				<br/><br/>
+				<div id="lifetime_bar_div"></div>=
             </h1>
         </section>
         <section id="loading_screen">
