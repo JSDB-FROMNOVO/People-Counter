@@ -1,3 +1,4 @@
 screen -ls
 screen -x ...
 ctl a -> d
+screen -X -S [session # you want to kill] quit
