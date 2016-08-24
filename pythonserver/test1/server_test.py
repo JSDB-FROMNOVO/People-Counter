@@ -130,6 +130,7 @@ def get_documents(sniff_type):
 ###
 
 def get_sniff_type(sniff):
+    mac = sniff["source"]
     if curl_test.check_if_real_mac(mac):
         sniff["vendor"] = curl_test.check_if_real_mac(mac)
         db = mongo.db.real_sniffs
@@ -146,15 +147,15 @@ def add_sniff(sniff):
     """
     mac = sniff["source"]
     db = None
-    sniff_type = get_sniff_type(sniff)
-    #if curl_test.check_if_real_mac(mac):
-    #    sniff["vendor"] = curl_test.check_if_real_mac(mac)
-    #    db = mongo.db.real_sniffs
-    #    sniff_type = "REAL"
-    #else:
-    #    sniff["vendor"] = None
-    #    db = mongo.db.invalid_sniffs
-    #    sniff_type = "RANDOMIZED"
+    #sniff_type = get_sniff_type(sniff)
+    if curl_test.check_if_real_mac(mac):
+        sniff["vendor"] = curl_test.check_if_real_mac(mac)
+        db = mongo.db.real_sniffs
+        sniff_type = "REAL"
+    else:
+        sniff["vendor"] = None
+        db = mongo.db.invalid_sniffs
+        sniff_type = "RANDOMIZED"
 
     if db.find({"source": sniff["source"]}).count() > 0:
         print "%s SNIFF (%s) ALREADY DETECTED --> UPDATING" % (sniff_type, str(sniff["source"]))
@@ -426,6 +427,52 @@ def get_update_time(cur_time, updated_time):
     return seconds
 
 
+""" TOM data analysis """
+
+def epoch_to_datetime(s):
+    #return datetime.datetime.fromtimestamp(s).strftime('%Y-%m-%d %H:%M:%S.%f') 
+    return datetime.datetime.fromtimestamp(s)
+
+def datetime_to_epoch(dt):
+    epoch = (dt - datetime.datetime(1970,1,1)).total_seconds()
+    return epoch
+
+def correct_timestamp(s):
+    """ corrects timestamp to be used in onion1 collection """
+    delta = 51630 + 180
+    correction = s - float(delta)
+    return correction
+
+def str_to_epoch(str_dt):
+    dt = datetime.datetime.strptime(str_dt, "%Y-%m-%d_%H:%M:%S.%f")
+    epoch = datetime_to_epoch(dt)
+    return epoch
+
+def get_all_sniffs(start_epoch, end_epoch):
+    sniffs = {
+	"onion1": [],
+	"onion2": [],
+	"zcounter1": 0,
+	"zcounter2": 0
+    }
+    
+    onion1_start_epoch = correct_timestamp(start_epoch)
+    onion1_end_epoch = correct_timestamp(end_epoch)
+   
+    for sniff in mongo.db.onion1.find( { "timestamp" : { "$gt": onion1_start_epoch, "$lt": onion1_end_epoch } } ):
+	del sniff['_id']
+	sniffs["onion1"].append(sniff)
+	sniffs["zcounter1"] += 1
+    
+    for sniff in mongo.db.onion2.find( { "timestamp" : { "$gt": start_epoch, "$lt": end_epoch } } ):
+        del sniff['_id']
+        sniffs["onion2"].append(sniff)
+        sniffs["zcounter2"] += 1
+    
+    #for sniff in mongo.db.onion2.find():
+    return sniffs
+
+
 """ Error cases """
 
 def abort_if_file_doesnt_exist(file_name, file_type):
@@ -579,12 +626,18 @@ class db_test(Resource):
 	    update_services()
 	    return get_service
 
-# '/manilla/<int:start_time>/<int:end_time>'
+# '/manilla/<string:start_dt>/<string:end_dt>'
 class manilla_data(Resource):
-    # curl http://10.12.1.37:8101/manilla/1/2 -X GET -v
-    def get(self, start_time, end_time):
-	documents = get_documents("Onion1")
-        return jsonify({"wifi_sniffs" : documents})
+    # curl http://10.12.1.37:8101/manilla/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0 -X GET -v
+    def get(self, start_dt, end_dt):
+	e1 = str_to_epoch(start_dt)
+	e2 = str_to_epoch(end_dt)
+	print [e1, e2]
+	sniffs = get_all_sniffs(e1, e2) 
+	#return sniffs
+	for sniff in sniffs["onion1"]:
+	    print sniff
+	    add_sniff(sniff)
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
@@ -593,7 +646,7 @@ api.add_resource(upload_file_onion, '/upload/<string:device>/<int:db>/<string:fi
 api.add_resource(db, '/db/<string:sniff_type>')
 api.add_resource(db_frontend, '/db/fend/<string:data_req>')
 api.add_resource(db_test, '/db/test/<string:data_req>')
-api.add_resource(manilla_data, '/manilla/<int:start_time>/<int:end_time>')
+api.add_resource(manilla_data, '/manilla/<string:start_dt>/<string:end_dt>')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8101, debug=True)
