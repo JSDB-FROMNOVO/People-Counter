@@ -5,6 +5,9 @@ from flask_cors import CORS, cross_origin
 import os, json, simplejson
 import datetime
 import curl_test
+import math
+import oui
+import operator
 
 cur_dir = '/home/ubuntu/ugradproject/pythonserver/test1'
 os.chdir(cur_dir)
@@ -148,8 +151,8 @@ def add_sniff(sniff):
     mac = sniff["source"]
     db = None
     #sniff_type = get_sniff_type(sniff)
-    if curl_test.check_if_real_mac(mac):
-        sniff["vendor"] = curl_test.check_if_real_mac(mac)
+    if check_if_real_mac(mac):
+        sniff["vendor"] = check_if_real_mac(mac)
         db = mongo.db.real_sniffs
         sniff_type = "REAL"
     else:
@@ -158,10 +161,8 @@ def add_sniff(sniff):
         sniff_type = "RANDOMIZED"
 
     if db.find({"source": sniff["source"]}).count() > 0:
-        print "%s SNIFF (%s) ALREADY DETECTED --> UPDATING" % (sniff_type, str(sniff["source"]))
 	process_sniff(sniff, sniff_type, "update", db)
     else:
-        print "%s SNIFF (%s) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]))
 	process_sniff(sniff, sniff_type, "add", db)
 
 def process_sniff(sniff, sniff_type, action, db):
@@ -172,45 +173,76 @@ def process_sniff(sniff, sniff_type, action, db):
  
     db_invalid_sniffs = mongo.db.invalid_sniffs     
     
-    randomized_detected = False
+    randomized_tag_detected = False
     if db_invalid_sniffs.find({"tags": sniff["tags"]}).count() > 0:
-        randomized_detected = True
-		
-    if randomized_detected:
-        updated_sniff = update_randomized_details(get_invalid_sniff(db, sniff), sniff)
+        randomized_tag_detected = True
+
+    same_randomized_source = False
+    if db_invalid_sniffs.find({"source": sniff["source"]}).count() >0:
+	same_randomized_source = True
+
+    if randomized_tag_detected:
+	if same_randomized_source:
+	    print "True, True %f %s" % (sniff["timestamp"], str(sniff["source"]))
+	else:
+	    print "False, True %f %s" % (sniff["timestamp"], str(sniff["source"]))
+
+    #check for source as both tag and source can be the same
+    if same_randomized_source:
+	print "%s (%s -- %f) --> UPDATING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
+        updated_sniff = update_randomized_sniff(get_source_sniff(db, sniff), sniff)
+        db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)	
+    elif randomized_tag_detected:
+        print "%s (%s -- %f) --> TAGGING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
+	updated_sniff = add_randomization(get_tag_sniff(db, sniff), sniff)
         db.update_one({"tags": sniff["tags"]}, {"$set": updated_sniff}, upsert=False)
     elif action == "add":
-        print "%s SNIFF (%s) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]))
+        print "%s (%s -- %f) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
         sniff = update_for_front_end(sniff, sniff_type) 
         db.insert_one(sniff)
     elif action == "update":	
-        print "%s SNIFF (%s) --> UPDATING" % (sniff_type, str(sniff["source"]))
-    	updated_sniff = update_real_details(get_real_sniff(db, sniff), sniff)
+        print "%s (%s -- %f) --> UPDATING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
+    	updated_sniff = update_real_details(get_source_sniff(db, sniff), sniff)
         db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)
     
-def get_real_sniff(db, sniff_search):
+def get_source_sniff(db, sniff_search):
     for sniff in db.find():
         if sniff["source"] == sniff_search["source"]:
             return sniff
 
-def get_invalid_sniff(db, sniff_search):
+def get_tag_sniff(db, sniff_search):
     for sniff in db.find():
 	if sniff["tags"] == sniff_search["tags"]:
 	    return sniff
 
-def update_randomized_details(updated_sniff, sniff):
+def add_randomization(updated_sniff, sniff):
     """ stores timestamp of randomized mac to 
-	mac with corresponding tag 
+	mac with corresponding tag and changes
+	primary source to the most recent 
+	radomized source 
     """  
-    print updated_sniff
     randomized_details = {
 	   "mac": str(sniff["source"]),
-	   "timestamp": str(sniff["timestamp"])
+	   "timestamp": str(sniff["timestamp"]),
+    	   "counter": 0
     }
     updated_sniff["randomized_macs"].append(randomized_details)
     #update signal strength of first randomized for front end 
     updated_sniff["signal_strength"] = str(sniff["signal_strength"])
+    #to check if same randomized mac found case in processing
+    updated_sniff["source"] = sniff["source"]
     return updated_sniff    
+
+def update_randomized_sniff(updated_sniff, sniff):
+    """ randomized sniff detected with same mac 
+	update signal strength and timestamp of
+	last (most recent) mac in randomized_macs
+	list
+    """
+    updated_sniff["signal_strength"] = str(sniff["signal_strength"])
+    updated_sniff["randomized_macs"][-1]["timestamp"] = sniff["timestamp"]
+    updated_sniff["randomized_macs"][-1]["counter"] += 1
+    return updated_sniff
 
 def update_real_details(updated_sniff, sniff):
     if sniff["ssid"] == "":
@@ -233,7 +265,8 @@ def update_for_front_end(sniff, sniff_type):
     elif sniff_type == "RANDOMIZED":
         sniff["randomized_macs"] = [{
 	   "mac": str(sniff["source"]),
-	   "timestamp": str(sniff["timestamp"])
+	   "timestamp": str(sniff["timestamp"]),
+	   "counter": 0
 	}]
     return sniff
 	
@@ -242,10 +275,6 @@ def update_for_front_end(sniff, sniff_type):
 """ Front end data processing """
 
 service_timestamp = {
-    "total_devices": [],
-    "ssid": [],
-    "vendor": [],
-    "sig_str": [],
     "last_update": None 
 }
 
@@ -253,7 +282,8 @@ get_service = {
     "total_devices": None,
     "ssid": None,
     "vendor": None,
-    "sig_str": None
+    "sig_str": None,
+    "randomized_intervals": None
 }
 
 def get_latest_update():
@@ -262,7 +292,7 @@ def get_latest_update():
 
 def get_total_devices():
     real_count = mongo.db.real_sniffs.count()
-    invalid_count = mongo.db.inalid_sniffs.count()
+    invalid_count = mongo.db.invalid_sniffs.count()
     total_count = real_count + invalid_count	
    
     count_details = {
@@ -279,7 +309,7 @@ def get_ssid_stats():
 	if "ssid_list" not in sniff.keys():
             continue
         for ssid in sniff["ssid_list"]:
-            key = str(ssid)
+            key = ssid.encode('utf-8')
             if key == "":
                 key = "None"
 	    if key not in ssid_stats.keys():
@@ -298,8 +328,9 @@ def get_ssid_stats():
 	        ssid_stats[key] = 1
 	    else:
 		ssid_stats[key] += 1
-    
-    return ssid_stats
+   
+    ssid_stats_top = dict(sorted(ssid_stats.iteritems(), key=operator.itemgetter(1), reverse=True)[:5]) 
+    return ssid_stats_top
 
 def get_vendor_stats():
     vendor_stats = {}
@@ -312,8 +343,9 @@ def get_vendor_stats():
 		vendor_stats[key] = 1
 	    else:
 		vendor_stats[key] += 1
-	
-    return vendor_stats
+
+    vendor_stats_top = dict(sorted(vendor_stats.iteritems(), key=operator.itemgetter(1), reverse=True)[:5])	
+    return vendor_stats_top
 
 def get_sig_str_stats():
     sig_str_stats = {
@@ -350,30 +382,32 @@ def get_randomized_intervals():
         mac sent by each phone that is 
         randomizing macs 
     """
-    randomized_intervals = {}
-    time_intervals = {0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 80: 0, 90: 0, 100: 0, 110: 0}
+    #randomized_intervals = {}
+    #time_intervials = {0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 80: 0, 90: 0, 100: 0, 110: 0}
+    randomized_intervals = {0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 80: 0, 90: 0, 100: 0, 110: 0, 120: 0, 130: 0, 140: 0, 150: 0, 160: 0, 170: 0, 180: 0, 190: 0, 200: 0, 210: 0, 220: 0, 230: 0, 240: 0, 250: 0, 260: 0}
     for sniff in mongo.db.invalid_sniffs.find():
         source = sniff["source"]
 	randomized_list = sniff["randomized_macs"]
-        randomized_intervals[source] = time_intervals
+        #randomized_intervals[source] = time_intervals
         #if device hasn't randomized its mac
         if len(randomized_list) == 1:
 	    continue
 	else:
-	    total_rmacs = len(randomized_list)
+	    total_rmacs = len(randomized_list) - 1
 	    for i in range(total_rmacs):
 		if i == total_rmacs:
-		    continue
-		interval = randomized_list[i+1]["timestamp"] - randomized[i]["timestamp"]
+		    break
+		interval = float(randomized_list[i+1]["timestamp"]) - float(randomized_list[i]["timestamp"])
 		interval = get_time_interval(int(interval))
-		randomized_intervals[source][interval] += 1		
+		#randomized_intervals[source][interval] += 1	
+		randomized_intervals[interval] += 1	
     return randomized_intervals        
 
 def get_time_interval(interval):
     #round interval to nearest 10
     rounded_interval = int(math.ceil(interval / 10.0)) * 10
-    if rounded_interval > 100:
-	return 110
+    if rounded_interval > 250:
+	return 250
     return rounded_interval 
 
 def update_services():
@@ -388,11 +422,13 @@ def update_services():
     ssid = get_ssid_stats()
     vendor = get_vendor_stats()
     sig_str = get_sig_str_stats()
+    randomized_intervals = get_randomized_intervals()
 
     get_service["total_devices"] = total_devices
     get_service["ssid"] = ssid
     get_service["vendor"] = vendor
     get_service["sig_str"] = sig_str
+    get_service["randomized_intervals"] = randomized_intervals 
 
 def update_timestamp(cur_time, data_req):
     global service_timestamp
@@ -404,16 +440,18 @@ def get_service_data(data_req):
     global service_timestamp
     global get_service
 
-    update_time = service_timestamp["last_update"]
-    cur_time = datetime.datetime.now() 
-    update_interval = get_update_time(cur_time, update_time)
+    #update_time = service_timestamp["last_update"]
+    #cur_time = datetime.datetime.now() 
+    #update_interval = get_update_time(cur_time, update_time)
 
-    if update_interval > 5 or update_time == None:
-	update_timestamp(cur_time, data_req)
-	update_services()
+    #if update_interval > 5 or update_time == None:
+    #	update_timestamp(cur_time, data_req)
+    #	update_services()
 	#data = get_service[data_req]
     #else:
         #data = get_service[data_req]
+
+    update_services()
 
     return get_service
 
@@ -471,6 +509,30 @@ def get_all_sniffs(start_epoch, end_epoch):
     
     #for sniff in mongo.db.onion2.find():
     return sniffs
+
+
+""" Vendors function """
+
+vendors = {}
+
+def get_vendor_list():
+    for vendor_dict in mongo.db.vendors.find():
+        return vendor_dict["vendors"]
+
+def get_vendors():
+    vendor_dict = oui.parser()
+    print vendor_dict
+    return vendor_dict
+
+def check_if_real_mac(mac):
+    global vendors
+
+    #mac = "F0:FB:FB:01:FA:21" 
+    mac_new = str(mac.replace(":", "")[:6].upper())
+    try :
+	return vendors[mac_new]
+    except Exception, e:
+        return False
 
 
 """ Error cases """
@@ -535,10 +597,24 @@ class data(Resource):
 
         return all_files
 
+def add_test(file_name):
+    json_file = open(str(file_name), "r")
+    data = json_file.read()
+    json_file.close()
+    json_data = simplejson.loads(data)
+
+    for sniff in json_data:
+        dt = str(datetime.datetime.now())
+        server_timestamp = dt.split()
+        sniff["server_timestamp"] = server_timestamp
+        #add_sniff(sniff)
+
+        mongo.db.test8.insert(sniff)
+
 # '/upload/<int:db>/<string:file_name>'
 class upload_file(Resource):
     # curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/upload/0/test2.txt
-    # curl -i -X POST -F files=@pi.json http://10.12.1.37:8101/upload/1/test2.jison
+    # curl -i -X POST -F files=@test2.json http://10.12.1.37:8101/upload/1/test2.json
     def post(self, file_name, db):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
@@ -546,10 +622,13 @@ class upload_file(Resource):
         file_data.save(os.path.join('/home/ubuntu/ugradproject/pythonserver/test1', file_name))
         all_files[file_type].append(file_name)
         
-        if db:
-            add_json_to_db(file_name)
-        
-        return all_files
+        #if db:
+        #    add_json_to_db(file_name)
+        #
+        #return all_files
+
+	if db:
+	    add_test(file_name)
 
 # '/upload/<string:device>/<int:db>/<string:file_name>'
 class upload_file_onion(Resource):
@@ -571,7 +650,6 @@ class upload_file_onion(Resource):
 
         return all_files
 
-
 # '/db/<string:sniff_type>'
 class db(Resource):
     # curl http://10.12.1.37:8101/db/REAL -X GET -v 
@@ -586,58 +664,54 @@ class db(Resource):
 	resp.headers['Access-Control-Allow-Origin'] = '*'
 	return resp
 
-# '/db/fend/<string:data_req>'
 class db_frontend(Resource):
-    # curl http://10.12.1.37:8101/db/fend/total_devices -X GET -v 
-    # curl http://10.12.1.37:8101/db/fend/vendor -X GET -v
-    # curl http://10.12.1.37:8101/db/fend/ssid -X GET -v
-    # curl http://10.12.1.37:8101/db/fend/sig_str -X GET -v
-    # curl http://10.12.1.37:8101/db/fend/randomized_lifecycle -X GET -v
     # curl http://10.12.1.37:8101/db/fend/all -X GET -v
     def get(self, data_req):
         global service_timestamp
 	global get_service
-#	""" return data requested """
-#        if data_req == "total_devices":
-#            return get_total_devices() #10
-#        elif data_req == "vendor":
-#            return get_vendor_stats() #{v1: 10, v2: 22, ...}
-#        elif data_req == "ssid":  
-#            return get_ssid_stats() #{s1:10, s2:12, s:923, s:21}    
-#        elif data_req == "sig_str":
-#            return get_sig_str_stats() #{strong:10, good:12, fair:923, poor:21}
         
         data = get_service_data(data_req)
-        print service_timestamp["last_update"]
         return data 
-        #randomized_intervals = get_sig_str() #{phone1: [10s: 3, 20s: 4, ... , 1m: 100], phone2: [...]}
 
-# '/db/test/<string:data_req>'          
-class db_test(Resource):  
-    def get(self, data_req):
-	global service_timestamp
-        global get_service
-	if data_req == "randomized_lifetime":
-	    return get_randomized_intervals()
-	    #data = get_service_data(data_req)
-	    #return data
-        else:
-	    print service_timestamp["last_update"]
-	    update_services()
-	    return get_service
+# '/db/add_vendors'          
+class db_add_vendors(Resource):  
+    # curl http://10.12.1.37:8101/db/add_vendors -X GET -v
+    def get(self):
+	vendors = get_vendors()
+	mongo.db.vendors.insert({"vendors": vendors})
+	return "added vendors to db" 
 
-# '/manilla/<string:start_dt>/<string:end_dt>'
+# '/manilla/<string:start_dt>/<string:end_dt>/<int:onion>'
 class manilla_data(Resource):
-    # curl http://10.12.1.37:8101/manilla/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0 -X GET -v
-    def get(self, start_dt, end_dt):
+    # curl http://10.12.1.37:8101/manilla/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0/1 -X GET -v
+    # curl http://10.12.1.37:8101/manilla/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0/2 -X GET -v
+    def get(self, start_dt, end_dt, onion):
+	global vendors
+
+        vendors = get_vendor_list()
 	e1 = str_to_epoch(start_dt)
 	e2 = str_to_epoch(end_dt)
 	print [e1, e2]
 	sniffs = get_all_sniffs(e1, e2) 
 	#return sniffs
-	for sniff in sniffs["onion1"]:
-	    print sniff
+	if onion == 1:
+    	    for sniff in sniffs["onion1"]:
+    	        add_sniff(sniff)
+	if onion == 2:
+	    for sniff in sniffs["onion2"]:
+	        add_sniff(sniff)
+
+# '/test/<int:test_num>'
+class test_data(Resource):
+    # curl http://10.12.1.37:8101/test/2 -X GET -v
+    # curl http://10.12.1.37:8101/test/3 -X GET -v
+    def get(self, test_num):
+        global vendors
+        vendors = get_vendor_list()
+
+	for sniff in mongo.db.test8.find():
 	    add_sniff(sniff)
+
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
@@ -645,8 +719,9 @@ api.add_resource(upload_file, '/upload/<int:db>/<string:file_name>')
 api.add_resource(upload_file_onion, '/upload/<string:device>/<int:db>/<string:file_name>')
 api.add_resource(db, '/db/<string:sniff_type>')
 api.add_resource(db_frontend, '/db/fend/<string:data_req>')
-api.add_resource(db_test, '/db/test/<string:data_req>')
-api.add_resource(manilla_data, '/manilla/<string:start_dt>/<string:end_dt>')
+api.add_resource(db_add_vendors, '/db/add_vendors')
+api.add_resource(manilla_data, '/manilla/<string:start_dt>/<string:end_dt>/<int:onion>')
+api.add_resource(test_data, '/test/<int:test_num>')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8101, debug=True)

@@ -53,17 +53,17 @@ def get_collection():
 	url = "http://0.0.0.0:8101/db"
 	subprocess.call(["curl", url, "-X", "GET", "-v"], shell=False)	
 
-def check_if_real_mac(mac):
-	#mac = "F0:FB:FB:01:FA:21" 
-	mac = str(mac)
-	mac_new = mac.replace(":", "%3A")
-	url = "http://api.macvendors.com/" + mac_new
-	vendor = subprocess.check_output(["curl", url], shell=False)	
-	
-	if len(vendor):
-		return vendor
-	else:
-		return False 
+#def check_if_real_mac(mac):
+#	#mac = "F0:FB:FB:01:FA:21" 
+#	mac = str(mac)
+#	mac_new = mac.replace(":", "%3A")
+#	url = "http://api.macvendors.com/" + mac_new
+#	vendor = subprocess.check_output(["curl", url, "-s"], shell=False)	
+#	
+#	if len(vendor):
+#		return vendor
+#	else:
+#		return False 
 
 # show_all_files()
 # delete_file("test.txt")
