@@ -1,0 +1,44 @@
+Prof Alberto Mac: 40:0E:85:29:08:1C
+
+
+
+start time (~9:10)
+
+Fri Aug 19 18:48:14 GMT 2016
+
+
+
+(9:30)
+
+Fri Aug 19 19:08:08 GMT 2016
+
+
+
+(10:08 --> Drone Launch #1)
+
+Fri Aug 19 19:46:19 GMT 2016
+
+
+
+(10:35 --> Drone Launch #2)
+
+Fri Aug 19 20:13:40 GMT 2016
+
+
+
+(~11:01 --> start moving from South to North end of street)
+
+203.1K Aug 19 20:38 trace1297-2016-08-19_20:36:31.pcap
+
+
+
+(~11:39 --> start moving from North to South in Restaurant)
+
+86.4K Aug 19 21:12 trace1297-2016-08-19_21:11:33.pcap
+
+
+
+(~11:51 --> start video analysis and sniff)
+
+Fri Aug 19 21:30:10 GMT 2016
+Video approximately starts here --> Fri Aug 19 21:31:32 GMT 2016

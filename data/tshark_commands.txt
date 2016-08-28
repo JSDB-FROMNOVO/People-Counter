@@ -1,0 +1,39 @@
+udo apt-get install tshark 
+  603  tshark -h
+  604  tshark -h | grep filter
+  605  man tshark 
+  607  tshark -h
+  608  tshark -h | grep -i file
+  609  tshark -r wireless.cap
+  610  tshark -r wireless.cap > out.txt
+  612  tshark -r wireless.cap -f wlan.fc.type_subtype==4
+  613  tshark -r wireless.cap -R wlan.fc.type_sucbtype==4
+  614  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -T fields -e eth.addr -e eth.src
+  615  tshark -r wireless.cap -R wlan.fc.type_subtype==4 
+  616  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"rhs","%rhs","uhs","%uhs"
+  617  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -N m
+  618  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"rhs"
+  619  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"uhs","%uhs"
+  620  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"uhs","%uhs" | uniq
+  621  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"uhs","%uhs" | uniq | wc -l
+  622  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -n -o column
+  623  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"uhs" | uniq | wc -l
+  624  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -o column.format:"%uhs"
+  625  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -n
+  626  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -n | awk '{print $3}'
+  627  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -n | awk '{print $3}' | uniq
+  628  tshark -r wireless.cap -R wlan.fc.type_subtype==4 -n | awk '{print $3}' | uniq | wc -l
+  629  man tshark 
+  630  tshark -r wireless.cap -2 -R wlan.fc.type_subtype==4 -n 
+  631  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n 
+  632  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 
+  634  tshark -r wireless.cap -n > out.txt 
+  642  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 
+  643  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n | awk '{print $3}'
+  644  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n | awk '{print $3}' | sort | uniq
+  645  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n | awk '{print $3}' | sort | uniq | wc -l
+  647  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n | awk '{print $3}' | sort | uniq | wc -l
+  648  tshark -r wireless.cap -Y wlan.fc.type_subtype==4 -n | awk '{print $3}' | sort | uniq 
+  658  tshark -r wireless.cap 
+  810  tshark -r wireless.cap 
+
