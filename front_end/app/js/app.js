@@ -1,8 +1,8 @@
 $(document).ready(function () {
     google.charts.load('current', {
-        'packages': ['corechart']
+        'packages': ['corechart', 'bar', 'line']
     });
-    google.charts.setOnLoadCallback(getInfo);
+    google.charts.setOnLoadCallback(onionOne);
     //            getNumberDevices();
     //            getSignalStrength();
     //
@@ -16,8 +16,84 @@ var getInfo = function () {
         crossDomain: true,
         data: {},
         success: function (jsonResult) {
+            console.log(jsonResult);
+            $('#wifi-select-dest').html("All");
+            processData(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+//    setTimeout(function () {
+//        getInfo();
+//    }, 5000);
+}
 
-            $("#num-unique-mac").html(jsonResult.total_devices['real_count']);
+var onionOne = function(){
+    $.ajax({
+        type: "GET",
+        url: "./onion1.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            console.log(jsonResult);
+            $('#wifi-select-dest').html("Onion 1");
+            processData(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+};
+
+var onionTwo = function(){
+    console.log("22");
+    $.ajax({
+        type: "GET",
+        url: "./onion2.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            console.log(jsonResult);
+            $('#wifi-select-dest').html("Onion 2");
+            processData(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+};
+
+var onionAll = function(){
+    $.ajax({
+        type: "GET",
+        url: "./onion1and2.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            console.log(jsonResult);
+            $('#wifi-select-dest').html("Onion 1 & 2");
+            processData(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+};
+
+var processData = function (jsonResult){
+    $("#num-unique-mac").html(jsonResult.total_devices['real_count']);
             width = $('#num-unique-mac').width();
             $('#num-unique-mac').css({
                 'height': width + 'px'
@@ -35,22 +111,104 @@ var getInfo = function () {
             $('#num-total-mac').css({
                 'height': width + 'px'
             });
-
+            updateLifeTime(jsonResult['randomized_intervals']);
             updateSignalStrength(jsonResult['sig_str']);
             updateVendorChart(jsonResult['vendor']);
             updateSSIDChart(jsonResult['ssid']);
             $('#loading_screen').hide();
             $('#main_content').show();
-        },
-        error: function (jqXHR, textStatus) {
-            //handle error
-            console.log('err');
-            console.log(jqXHR);
-        }
-    });
-    setTimeout(function () {
-        getInfo();
-    }, 5000);
+};
+
+var updateLifeTime = function (jsonResult) {
+
+        var dataarray = [];
+        dataarray.push(['Year', 'Visitations', {
+            role: 'style'
+        }]);
+        $.each(jsonResult, function (key, value) {
+            if (key != "None") {
+                dataarray.push([key, value, 'stroke-color: #703593; stroke-width: 4; fill-color: #C5A5CF']);
+            }
+        })
+        var data = google.visualization.arrayToDataTable(dataarray);
+    
+        var view = new google.visualization.DataView(data);
+        view.setColumns([0, 1,
+                           2]);
+    
+        var options = {
+            width: 800,
+            height: 400,
+            bar: {
+                groupWidth: "95%"
+            },
+            legend: {
+                position: "none"
+            },
+        };
+        var chart = new google.visualization.ColumnChart(document.getElementById("chart_div"));
+        chart.draw(view, options);
+//    var chartDiv = document.getElementById('chart_div');
+//
+//    var data = new google.visualization.DataTable();
+//    data.addColumn('number', 'Index');
+//    data.addColumn('number', 'Fibonacci Number');
+//
+//    var dataarray = [];
+//
+//    $.each(jsonResult, function (key, value) {
+//        if (key != "None") {
+//            data.addRows([parseInt(key), parseInt(value)]);
+//        }
+//    })
+//
+//    console.log(dataarray);
+//    data.addRows(
+//        dataarray);
+//
+//    var linearOptions = {
+//        legend: 'none',
+//        pointSize: 5,
+//        width: 900,
+//        height: 500,
+//        hAxis: {
+//            gridlines: {
+//                count: -1
+//            }
+//        },
+//        vAxis: {
+//            ticks: [0, 50, 250, 300]
+//        }
+//    };
+//
+//    var mirrorLogOptions = {
+//        title: 'Fibonacci Numbers in Mirror Log Scale',
+//        legend: 'none',
+//        pointSize: 5,
+//        width: 900,
+//        height: 500,
+//        hAxis: {
+//            gridlines: {
+//                count: -1
+//            }
+//        },
+//        vAxis: {
+//            scaleType: 'mirrorLog',
+//            ticks: [0, 5, 10]
+//        }
+//    };
+//
+//    function drawLinearChart() {
+//        var linearChart = new google.visualization.LineChart(chartDiv);
+//        linearChart.draw(data, linearOptions);
+//    }
+//
+//    function drawMirrorLogChart() {
+//        var mirrorLogChart = new google.visualization.LineChart(chartDiv);
+//        mirrorLogChart.draw(data, mirrorLogOptions);
+//    }
+//
+//    drawMirrorLogChart();
 }
 var getNumberDevices = function () {
     //get the number of real MACs, randomized MACs, and total devices
@@ -90,13 +248,20 @@ var getNumberDevices = function () {
             console.log(jqXHR);
         }
     });
-    setTimeout(function () {
-        getNumberDevices();
-    }, 3000);
+//    setTimeout(function () {
+//        getNumberDevices();
+//    }, 3000);
 }
 
 var updateSignalStrength = function (jsonResult) {
     var data = new google.visualization.DataTable();
+    
+    $('#wifi-poor').html(jsonResult['poor']);
+    $('#wifi-fair').html(jsonResult['fair']);
+    $('#wifi-good').html(jsonResult['good']);
+    $('#wifi-strong').html(jsonResult['strong']);
+    
+    
     data.addColumn('string', 'Strength');
     data.addColumn('number', '# Devices');
     data.addRows([
@@ -110,7 +275,7 @@ var updateSignalStrength = function (jsonResult) {
     var options = {
         'pieHole': 0.4,
         'width': 800,
-        'height': 600,
+        'height': 400,
         slices: {
             0: {
                 color: 'green'
@@ -188,9 +353,9 @@ var getSignalStrength = function () {
             console.log(jqXHR);
         }
     });
-    setTimeout(function () {
-        getSignalStrength();
-    }, 3000);
+//    setTimeout(function () {
+//        getSignalStrength();
+//    }, 3000);
 }
 
 var updateVendorChart = function (jsonResult) {
@@ -208,7 +373,7 @@ var updateVendorChart = function (jsonResult) {
         backgroundColor: 'transparent',
         'pieHole': 0.4,
         'width': 800,
-        'height': 600
+        'height': 400
     };
 
     // Instantiate and draw our chart, passing in some options.
@@ -255,9 +420,9 @@ var getVendorChart = function () {
             console.log(jqXHR);
         }
     });
-    setTimeout(function () {
-        getVendorChart();
-    }, 3000);
+//    setTimeout(function () {
+//        getVendorChart();
+//    }, 3000);
 }
 
 var updateSSIDChart = function (jsonResult) {
@@ -276,7 +441,7 @@ var updateSSIDChart = function (jsonResult) {
     var options = {
         'pieHole': 0.4,
         'width': 800,
-        'height': 600
+        'height': 400
     };
 
     // Instantiate and draw our chart, passing in some options.
@@ -325,9 +490,9 @@ var getSSIDChart = function () {
             console.log(jqXHR);
         }
     });
-    setTimeout(function () {
-        getSSIDChart();
-    }, 3000);
+//    setTimeout(function () {
+//        getSSIDChart();
+//    }, 3000);
 }
 
 var getLifetimeChart = function () {
@@ -373,7 +538,7 @@ var getLifetimeChart = function () {
             console.log(jqXHR);
         }
     });
-    setTimeout(function () {
-        getLifetimeChart();
-    }, 3000);
+//    setTimeout(function () {
+//        getLifetimeChart();
+//    }, 3000);
 }

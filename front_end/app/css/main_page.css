@@ -191,3 +191,29 @@
     text-align: left;
     width: 800px;
 }
+
+.beautiful-btn {
+    font-size: 48%;
+    min-width: 95px;
+    padding: 14px 15px;
+    cursor:pointer;
+    border-style: solid;
+    border-color: #3498db !important;
+    border-width: 1px;
+    margin-right: 10px;
+    background-color: #F2F2F2 !important;
+    color: #3498db !important;
+}
+
+.beautiful-btn:hover {
+    font-size: 48%;
+    min-width: 95px;
+    padding: 14px 15px;
+    cursor:pointer;
+    border-style: solid;
+    border-color: #265a88 !important;
+    border-width: 1px;
+    margin-right: 10px;
+    background-color: #F2F2F2 !important;
+    color: #265a88 !important;
+}
