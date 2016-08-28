@@ -89,7 +89,7 @@ def add_json_to_onion1_collection(file_name):
         sniff["server_timestamp"] = server_timestamp
         #add_sniff(sniff)
 	
-	mongo.db.onion1.insert(sniff)
+	mongo.db.onion1_corrected.insert(sniff)
 
 def add_json_to_onion2_collection(file_name):
     json_file = open(str(file_name), "r")
@@ -103,7 +103,7 @@ def add_json_to_onion2_collection(file_name):
         sniff["server_timestamp"] = server_timestamp
         #add_sniff(sniff)
 
-        mongo.db.onion2.insert(sniff)
+        mongo.db.onion2_corrected.insert(sniff)
 
 def rem_json_from_db(file_name):
     json_file = open(str(file_name), "r")
@@ -194,7 +194,7 @@ def process_sniff(sniff, sniff_type, action, db):
         db.update_one({"source": sniff["source"]}, {"$set": updated_sniff}, upsert=False)	
     elif randomized_tag_detected:
         print "%s (%s -- %f) --> TAGGING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
-	updated_sniff = add_randomization(get_tag_sniff(db, sniff), sniff)
+	updated_sniff = add_randomization(get_tag_sniff(db_invalid_sniffs, sniff), sniff)
         db.update_one({"tags": sniff["tags"]}, {"$set": updated_sniff}, upsert=False)
     elif action == "add":
         print "%s (%s -- %f) DETECTED --> ADDING" % (sniff_type, str(sniff["source"]), sniff["timestamp"])
@@ -249,7 +249,7 @@ def update_real_details(updated_sniff, sniff):
         ssid = "None"
     else:
         ssid = sniff["ssid"]
-    updated_sniff["ssid_list"].append(str(ssid))
+    updated_sniff["ssid_list"].append(ssid.encode('utf-8'))
     updated_sniff["timestamp_list"].append(sniff["timestamp"])
     return updated_sniff
 
@@ -338,7 +338,7 @@ def get_vendor_stats():
 	if "vendor_list" not in sniff.keys():
 	   continue
 	for vendor in sniff["vendor_list"]:
-	    key = str(vendor)
+	    key = vendor.encode('utf-8')
 	    if vendor not in vendor_stats.keys():
 		vendor_stats[key] = 1
 	    else:
@@ -397,7 +397,7 @@ def get_randomized_intervals():
 	    for i in range(total_rmacs):
 		if i == total_rmacs:
 		    break
-		interval = float(randomized_list[i+1]["timestamp"]) - float(randomized_list[i]["timestamp"])
+		interval = abs(float(randomized_list[i+1]["timestamp"]) - float(randomized_list[i]["timestamp"]))
 		interval = get_time_interval(int(interval))
 		#randomized_intervals[source][interval] += 1	
 		randomized_intervals[interval] += 1	
@@ -407,7 +407,7 @@ def get_time_interval(interval):
     #round interval to nearest 10
     rounded_interval = int(math.ceil(interval / 10.0)) * 10
     if rounded_interval > 250:
-	return 250
+	return 260
     return rounded_interval 
 
 def update_services():
@@ -497,12 +497,15 @@ def get_all_sniffs(start_epoch, end_epoch):
     onion1_start_epoch = correct_timestamp(start_epoch)
     onion1_end_epoch = correct_timestamp(end_epoch)
    
-    for sniff in mongo.db.onion1.find( { "timestamp" : { "$gt": onion1_start_epoch, "$lt": onion1_end_epoch } } ):
+    for sniff in mongo.db.onion1_corrected.find( { "timestamp" : { "$gt": onion1_start_epoch, "$lt": onion1_end_epoch } } ):
 	del sniff['_id']
+	delta = 51630 + 180
+	timestamp_corrected = sniff["timestamp"] + float(delta)
+	sniff["timestamp"] = timestamp_corrected 
 	sniffs["onion1"].append(sniff)
 	sniffs["zcounter1"] += 1
     
-    for sniff in mongo.db.onion2.find( { "timestamp" : { "$gt": start_epoch, "$lt": end_epoch } } ):
+    for sniff in mongo.db.onion2_corrected.find( { "timestamp" : { "$gt": start_epoch, "$lt": end_epoch } } ):
         del sniff['_id']
         sniffs["onion2"].append(sniff)
         sniffs["zcounter2"] += 1
@@ -632,8 +635,8 @@ class upload_file(Resource):
 
 # '/upload/<string:device>/<int:db>/<string:file_name>'
 class upload_file_onion(Resource):
-    # curl -i -X POST -F files=@input.txt http://10.12.1.37:8101/upload/onion1/1/data.json
-    # curl -i -X POST -F files=@pi.json http://10.12.1.37:8101/upload/onion2/1/data.json
+    # curl -i -X POST -F files=@new_entire.json http://10.12.1.37:8101/upload/onion1/1/onion1.json
+    # curl -i -X POST -F files=@new_entire.json http://10.12.1.37:8101/upload/onion2/1/onion2.json
     def post(self, file_name, device, db):
         file_type = file_ext(str(file_name))
         abort_if_file_exists(file_name, file_type)
@@ -712,6 +715,16 @@ class test_data(Resource):
 	for sniff in mongo.db.test8.find():
 	    add_sniff(sniff)
 
+# '/temp'
+class temp(Resource):
+    # curl http://10.12.1.37:8101/temp -X GET -v
+    def get(self):
+	randomized_sniffs = {"onion1and2910to1042": []}
+	for sniff in mongo.db.invalid_sniffs.find():
+	    del sniff["_id"]
+	    if len(sniff["randomized_macs"]) > 1:
+		randomized_sniffs["onion1and2910to1042"].append(sniff)
+	return randomized_sniffs
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
@@ -722,6 +735,7 @@ api.add_resource(db_frontend, '/db/fend/<string:data_req>')
 api.add_resource(db_add_vendors, '/db/add_vendors')
 api.add_resource(manilla_data, '/manilla/<string:start_dt>/<string:end_dt>/<int:onion>')
 api.add_resource(test_data, '/test/<int:test_num>')
+api.add_resource(temp, '/temp')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8101, debug=True)
