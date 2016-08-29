@@ -28,10 +28,12 @@
         "260": 0
     },
     "sig_str": {
-        "fair": 0,
-        "good": 2,
-        "poor": 1,
-        "strong": 597
+        "onion1": {
+            "fair": 0,
+            "good": 2,
+            "poor": 1,
+            "strong": 597
+        }
     },
     "ssid": {
         "#TELUSDirect": 117,

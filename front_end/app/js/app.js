@@ -52,7 +52,6 @@ var onionOne = function(){
 };
 
 var onionTwo = function(){
-    console.log("22");
     $.ajax({
         type: "GET",
         url: "./onion2.json",
@@ -260,15 +259,67 @@ var updateSignalStrength = function (jsonResult) {
 //    $('#wifi-fair').html(jsonResult['fair']);
 //    $('#wifi-good').html(jsonResult['good']);
 //    $('#wifi-strong').html(jsonResult['strong']);
-    
+    var totalstrong = 0;
+    var totalgood = 0;
+    var totalfair = 0;
+    var totalpoor = 0;
+    if(jsonResult['onion1'] == undefined){
+        totalstrong = jsonResult['onion2']['strong'];
+        totalgood = jsonResult['onion2']['good'];
+        totalfair = jsonResult['onion2']['fair'];
+        totalpoor = jsonResult['onion2']['poor'];
+        
+        $('#onion1-wifi-poor').html(0);
+        $('#onion1-wifi-fair').html(0);
+        $('#onion1-wifi-good').html(0);
+        $('#onion1-wifi-strong').html(0);
+        
+        $('#onion2-wifi-poor').html(totalpoor);
+        $('#onion2-wifi-fair').html(totalfair);
+        $('#onion2-wifi-good').html(totalgood);
+        $('#onion2-wifi-strong').html(totalstrong);
+        
+    }
+    else if(jsonResult['onion2'] == undefined){
+        totalstrong = jsonResult['onion1']['strong'];
+        totalgood = jsonResult['onion1']['good'];
+        totalfair = jsonResult['onion1']['fair'];
+        totalpoor = jsonResult['onion1']['poor'];
+        
+        $('#onion1-wifi-poor').html(totalpoor);
+        $('#onion1-wifi-fair').html(totalfair);
+        $('#onion1-wifi-good').html(totalgood);
+        $('#onion1-wifi-strong').html(totalstrong);
+        
+        $('#onion2-wifi-poor').html(0);
+        $('#onion2-wifi-fair').html(0);
+        $('#onion2-wifi-good').html(0);
+        $('#onion2-wifi-strong').html(0);
+    }
+    else{
+        totalstrong = jsonResult['onion1']['strong']+jsonResult['onion2']['strong'];
+        totalgood = jsonResult['onion1']['good']+jsonResult['onion2']['good'];
+        totalfair = jsonResult['onion1']['fair']+jsonResult['onion2']['fair'];
+        totalpoor = jsonResult['onion1']['poor']+jsonResult['onion2']['poor'];
+        
+        $('#onion1-wifi-poor').html(jsonResult['onion1']['poor']);
+        $('#onion1-wifi-fair').html(jsonResult['onion1']['fair']);
+        $('#onion1-wifi-good').html(jsonResult['onion1']['good']);
+        $('#onion1-wifi-strong').html(jsonResult['onion1']['strong']);
+        
+        $('#onion2-wifi-poor').html(jsonResult['onion2']['poor']);
+        $('#onion2-wifi-fair').html(jsonResult['onion2']['fair']);
+        $('#onion2-wifi-good').html(jsonResult['onion2']['good']);
+        $('#onion2-wifi-strong').html(jsonResult['onion2']['strong']);
+    }
     
     data.addColumn('string', 'Strength');
     data.addColumn('number', '# Devices');
     data.addRows([
-					  ['Strong', jsonResult['strong']],
-					  ['Good', jsonResult['good']],
-					  ['Fair', jsonResult['fair']],
-					  ['Poor', jsonResult['poor']]
+					  ['Strong', totalstrong],
+					  ['Good', totalgood],
+					  ['Fair', totalfair],
+					  ['Poor', totalpoor]
 					]);
 
     // Set chart options
