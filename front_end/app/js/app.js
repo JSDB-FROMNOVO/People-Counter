@@ -256,10 +256,10 @@ var getNumberDevices = function () {
 var updateSignalStrength = function (jsonResult) {
     var data = new google.visualization.DataTable();
     
-    $('#wifi-poor').html(jsonResult['poor']);
-    $('#wifi-fair').html(jsonResult['fair']);
-    $('#wifi-good').html(jsonResult['good']);
-    $('#wifi-strong').html(jsonResult['strong']);
+//    $('#wifi-poor').html(jsonResult['poor']);
+//    $('#wifi-fair').html(jsonResult['fair']);
+//    $('#wifi-good').html(jsonResult['good']);
+//    $('#wifi-strong').html(jsonResult['strong']);
     
     
     data.addColumn('string', 'Strength');
