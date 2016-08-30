@@ -1,0 +1,85 @@
+[
+    {
+        "ssid": "nallab", 
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.340841, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 8, 
+        "signal_strength": -37, 
+        "type": 0
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.35122, 
+        "destination": "01:00:5e:7f:ff:fa", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }, 
+    {
+        "ssid": "nallab", 
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.443231, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 8, 
+        "signal_strength": -37, 
+        "type": 0
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.444256, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 0, 
+        "signal_strength": -35, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.461257, 
+        "destination": "01:00:5e:7f:ff:fa", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.46547, 
+        "destination": "01:00:5e:7f:ff:fa", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.50679, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }, 
+    {
+        "ssid": "nallab", 
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.54561, 
+        "destination": "ff:ff:ff:ff:ff:ff", 
+        "subtype": 8, 
+        "signal_strength": -37, 
+        "type": 0
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.571249, 
+        "destination": "01:00:5e:7f:ff:fa", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }, 
+    {
+        "source": "74:44:01:51:62:7c", 
+        "timestamp": 1469642063.574648, 
+        "destination": "01:00:5e:7f:ff:fa", 
+        "subtype": 0, 
+        "signal_strength": -37, 
+        "type": 2
+    }
+]
