@@ -640,6 +640,7 @@ def get_heatmap_stats(start_time, end_time):
     return heatmap
 
 def parse_sniff_loc(sniff, heatmap, intervals_map):
+    """ "0"-onion1, "1"-onion2, "2"-onion1and2 """
     output = {"heatmap": None, "intervals_map": None}
     for timestamp in sniff["timestamp_list"]:
         timemap = get_time_map(timestamp["timestamp"])     
@@ -661,6 +662,19 @@ def parse_sniff_loc(sniff, heatmap, intervals_map):
     output["heatmap"] = heatmap
     output["intervals_map"] = intervals_map
     return output 
+
+def get_fend_heatmap(heatmap):
+    heatmap_fend = {
+	"onion1": [],
+	"onion2": [],
+	"onion1and2": []
+    }
+    for timestamp in sorted(heatmap.keys()):
+	heatmap_fend["onion1"].append({timestamp: heatmap[timestamp]["0"]})
+	heatmap_fend["onion2"].append({timestamp: heatmap[timestamp]["1"]})
+	heatmap_fend["onion1and2"].append({timestamp: heatmap[timestamp]["2"]})
+    return heatmap_fend
+
 
 """ Vendors functions """
 
@@ -898,7 +912,8 @@ class heatmap(Resource):
     def get(self):
     	start_time, end_time = 1471687680, 1471688460
 	heatmap = get_heatmap_stats(start_time, end_time)
-	return heatmap
+	heatmap_fend = get_fend_heatmap(heatmap)
+	return heatmap_fend
 
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
