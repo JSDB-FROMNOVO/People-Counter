@@ -88,6 +88,8 @@ def add_json_to_onion1_collection(file_name):
         server_timestamp = dt.split()
         sniff["server_timestamp"] = server_timestamp
         #add_sniff(sniff)
+	delta = 51630 + 180
+	sniff["timestamp"] = sniff["timestamp"] + delta	
 	
 	mongo.db.onion1_corrected.insert(sniff)
 
@@ -364,14 +366,14 @@ def get_sig_str_stats():
 
 def process_sig_str(sniff, sig_str_stats):
     ss = sniff["signal_strength"]
-    if ss >= -50:
+    if ss >= -35: #5m
         sig_str_stats["strong"] += 1
-    elif ss < -50 and ss >= -60:
+    elif ss < -35 and ss >= -45: #25m
         sig_str_stats["good"] += 1
-    elif ss < -60 and ss >= -70:
+    elif ss < -45 and ss >= -49: #100m
         sig_str_stats["fair"] += 1
-    else:
-        sig_str_stats["poor"] += 1
+    else: #200-250m
+        sig_str_stats["poor"] += 1 
     return sig_str_stats
 
 #randomized_intervals = get_randomized_intervals() #{phone1: {10s: 3, 20s: 4, ... , 1m: 100}, phone2: {...}, ...}
@@ -493,12 +495,14 @@ def get_all_sniffs(start_epoch, end_epoch):
 	"zcounter1": 0,
 	"zcounter2": 0
     }
-    
+
+    # adjust real timestamps to onion1 timestamps    
     onion1_start_epoch = correct_timestamp(start_epoch)
     onion1_end_epoch = correct_timestamp(end_epoch)
    
     for sniff in mongo.db.onion1_corrected.find( { "timestamp" : { "$gt": onion1_start_epoch, "$lt": onion1_end_epoch } } ):
 	del sniff['_id']
+	# get back real timestamps from onion1 timestamps
 	delta = 51630 + 180
 	timestamp_corrected = sniff["timestamp"] + float(delta)
 	sniff["timestamp"] = timestamp_corrected 
@@ -512,6 +516,19 @@ def get_all_sniffs(start_epoch, end_epoch):
     
     #for sniff in mongo.db.onion2.find():
     return sniffs
+
+def remove_invalid(timestamp):
+    TIMECHECK = float(timestamp) - 300
+    if int(timestamp) % 60 != 0:
+	return
+    for sniff in mongo.db.real_sniffs.find( { "timestamp" : { "$lt": TIMECHECK } }):
+	mongo.db.real_sniffs.delete_one(sniff)
+	print "REMOVING REAL %s" % str(sniff["timestamp"])
+    for sniff in mongo.db.invalid_sniffs.find():
+	if float(sniff["randomized_macs"][-1]["timestamp"]) < TIMECHECK:
+            mongo.db.invalid_sniffs.delete_one(sniff)
+            print "REMOVING RANDOMIZED %s" % str(sniff["timestamp"])
+    #mongo.db.invalid_sniffs.deleteMany( { "timestamp": { "$lt": TIMECHECK } } )
 
 
 """ Vendors function """
@@ -699,10 +716,13 @@ class manilla_data(Resource):
 	#return sniffs
 	if onion == 1:
     	    for sniff in sniffs["onion1"]:
-    	        add_sniff(sniff)
+		add_sniff(sniff)
+	        remove_invalid(sniff["timestamp"])
 	if onion == 2:
 	    for sniff in sniffs["onion2"]:
-	        add_sniff(sniff)
+		add_sniff(sniff)
+                remove_invalid(sniff["timestamp"])
+
 
 # '/test/<int:test_num>'
 class test_data(Resource):

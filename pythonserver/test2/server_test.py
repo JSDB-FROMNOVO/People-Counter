@@ -198,10 +198,6 @@ def process_sniff(sniff, sniff_type, action, db, onion_num):
 	    print "False, True %f %s" % (sniff["timestamp"], str(sniff["source"]))
 
     loc = check_detection_id(sniff, onion_num)
-    #print sniff
-    #print db
-    #print db_invalid_sniffs
-    #print (randomized_tag_detected, same_randomized_source)
 
     #check for source as both tag and source can be the same
     if same_randomized_source:
@@ -292,31 +288,25 @@ def update_for_front_end(sniff, sniff_type, loc):
     return sniff
 
 def check_detection_id(sniff, onion_num):
+    """ checks for mac within +/-15 min in other
+	onion since detection in cur onion for
+	intersection 
+     """
     timestamp = sniff["timestamp"]
     ts_low = timestamp - 900
     ts_high = timestamp + 900
+
     if onion_num == 1:
-	#condition_one = {"source": sniff["source"]}
-	#condition_two = {"timestamp" : {"$gt": ts_low, "$lt": ts_up}}
-	#print "%s (%s) --> count - %d" % (sniff["timestamp"], str(sniff["source"]), int(mongo.db.onion2_corrected.find({"source": sniff["source"]}).count())) 
 	for snf in mongo.db.onion2_corrected.find({"source": sniff["source"]}):
 	    if snf["timestamp"] >= ts_low and snf["timestamp"] <= ts_high: 
 		return "2"
-		#print "---- %s" % snf["timestamp"]
-	    #else:
-	    #	return "0"
-		#print "COND1 --> 0"
-		#continue
 	return "0"
 
-    elif onion_num == 2:
-	cond2 = mongo.db.onion1_corrected.find({"$and": [{"source": sniff["source"]}, {"timestamp" : {"$gt": ts_low, "$lt": ts_high}}]})
-	print mongo.db.onion1_corrected.find({"source": sniff["source"]}).count()
-	if cond2.count() == 0:
-	    print "COND2 --> 1"
-	elif cond2.count() > 0:
-	    print "COND2 --> 2"
-	
+    if onion_num == 2:
+        for snf in mongo.db.onion1_corrected.find({"source": sniff["source"]}):
+            if snf["timestamp"] >= ts_low and snf["timestamp"] <= ts_high:
+                return "2"
+        return "1"
 	
 ### 
     
@@ -555,15 +545,15 @@ def get_all_sniffs(start_epoch, end_epoch):
     }
 
     # adjust real timestamps to onion1 timestamps    
-    onion1_start_epoch = correct_timestamp(start_epoch)
-    onion1_end_epoch = correct_timestamp(end_epoch)
+    #onion1_start_epoch = correct_timestamp(start_epoch)
+    #onion1_end_epoch = correct_timestamp(end_epoch)
    
-    for sniff in mongo.db.onion1_corrected.find( { "timestamp" : { "$gt": onion1_start_epoch, "$lt": onion1_end_epoch } } ):
+    for sniff in mongo.db.onion1_corrected.find( { "timestamp" : { "$gt": start_epoch, "$lt": end_epoch } } ):
 	del sniff['_id']
 	# get back real timestamps from onion1 timestamps
-	delta = 51630 + 180
-	timestamp_corrected = sniff["timestamp"] + float(delta)
-	sniff["timestamp"] = timestamp_corrected 
+	#delta = 51630 + 180
+	#timestamp_corrected = sniff["timestamp"] + float(delta)
+	#sniff["timestamp"] = timestamp_corrected 
 	sniffs["onion1"].append(sniff)
 	sniffs["zcounter1"] += 1
     
@@ -597,7 +587,82 @@ def remove_invalid(timestamp, onion_num):
     #mongo.db.invalid_sniffs.deleteMany( { "timestamp": { "$lt": TIMECHECK } } )
 
 
-""" Vendors function """
+""" Heatmap functions """
+
+def getheatmap(start_time, end_time):
+    hmap = {}
+    start = round((start_time / 10.0)) * 10
+    end = round((end_time / 10.0)) * 10
+    intervals = int((end - start) / 60) + 1
+    for i in range(intervals):
+        t = int(start + i*60)
+        hmap[t] = {"0": 0, "1": 0, "2": 0}
+    return hmap
+
+def getintervalmap(start_time, end_time):
+    interval_map = {}
+    start = round((start_time / 10.0)) * 10
+    end = round((end_time / 10.0)) * 10  
+    intervals = int((end - start) / 60) + 1
+    for i in range(intervals):
+        t = int(start + i*60)
+        interval_map[t] = [] 
+    return interval_map
+
+def get_time_map(timestamp):
+    """ round timestamp (seconds) to closest minute """
+    output = round(timestamp/60)*60
+    return output
+
+def get_heatmap_stats(start_time, end_time):
+    #1471687680, 1471688460
+    heatmap = getheatmap(start_time, end_time) 
+    intervals_map = getintervalmap(start_time, end_time)
+
+    for sniff in mongo.db.real_sniffs_onion1.find():
+	parser = parse_sniff_loc(sniff, heatmap, intervals_map)
+	heatmap = parser["heatmap"]
+	intervals_map = parser["intervals_map"]
+    for sniff in mongo.db.invalid_sniffs_onion1.find():
+        parser = parse_sniff_loc(sniff, heatmap, intervals_map)
+        heatmap = parser["heatmap"]
+        intervals_map = parser["intervals_map"]
+
+    for sniff in mongo.db.real_sniffs_onion2.find():
+        parser = parse_sniff_loc(sniff, heatmap, intervals_map)
+        heatmap = parser["heatmap"]
+        intervals_map = parser["intervals_map"]
+    for sniff in mongo.db.invalid_sniffs_onion2.find():
+        parser = parse_sniff_loc(sniff, heatmap, intervals_map)
+        heatmap = parser["heatmap"]
+        intervals_map = parser["intervals_map"]
+    print(json.dumps(intervals_map, sort_keys=True, indent=4, separators=(',', ': ')))
+    return heatmap
+
+def parse_sniff_loc(sniff, heatmap, intervals_map):
+    output = {"heatmap": None, "intervals_map": None}
+    for timestamp in sniff["timestamp_list"]:
+        timemap = get_time_map(timestamp["timestamp"])     
+        if sniff["source"] in intervals_map[timemap]:
+            print "cont"
+	    continue
+        elif timestamp["loc_id"] == "0":
+            heatmap[timemap]["0"] += 1            
+            intervals_map[timemap].append(sniff["source"])
+	    print ""
+        elif timestamp["loc_id"] == "1":
+            heatmap[timemap]["1"] += 1
+            intervals_map[timemap].append(sniff["source"])
+	    print ""
+        elif timestamp["loc_id"] == "2":
+            heatmap[timemap]["2"] += 1
+            intervals_map[timemap].append(sniff["source"])
+	    print ""
+    output["heatmap"] = heatmap
+    output["intervals_map"] = intervals_map
+    return output 
+
+""" Vendors functions """
 
 vendors = {}
 
@@ -791,25 +856,20 @@ class manilla_data_per_onion(Resource):
 
 # '/manilla_new/<string:start_dt>/<string:end_dt>'
 class manilla_data(Resource):
-    # curl http://10.12.1.37:8101/manilla_new/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0 -X GET -v
-    # curl http://10.12.1.37:8101/manilla_new/2016-08-20_10:00:00.0/2016-08-20_10:01:00.0 -X GET -v
+    # curl http://10.12.1.37:8101/manilla_new/2016-08-20_10:08:00.0/2016-08-20_10:21:00.0 -X GET -v
     def get(self, start_dt, end_dt):
         global vendors
-
         vendors = get_vendor_list()
         e1 = str_to_epoch(start_dt)
         e2 = str_to_epoch(end_dt)
         print [e1, e2]
         sniffs = get_all_sniffs(e1, e2)
-        #return sniffs
-        for sniff in sniffs["onion1"]:
-            #check_detection_id(sniff, 1)
-	    add_sniff(sniff, 1)
-            remove_invalid(sniff["timestamp"], 1)
-        #for sniff in sniffs["onion2"]:
-        #    check_detection_id(sniff, 2)
-	    #add_sniff(sniff, 2)
-            #remove_invalid(sniff["timestamp"], 2)
+        #for sniff in sniffs["onion1"]:
+	#    add_sniff(sniff, 1)
+        #    remove_invalid(sniff["timestamp"], 1)
+        for sniff in sniffs["onion2"]:
+	    add_sniff(sniff, 2)
+            remove_invalid(sniff["timestamp"], 2)
 
 # '/test/<int:test_num>'
 class test_data(Resource):
@@ -833,6 +893,13 @@ class rintervals(Resource):
 		randomized_sniffs["onion1and2910to1042"].append(sniff)
 	return randomized_sniffs
 
+class heatmap(Resource):
+    # curl http://10.12.1.37:8101/heatmap -X GET -v
+    def get(self):
+    	start_time, end_time = 1471687680, 1471688460
+	heatmap = get_heatmap_stats(start_time, end_time)
+	return heatmap
+
 api.add_resource(files, '/files/<int:db>/<string:file_name>')
 api.add_resource(data, '/data/<int:db>/<string:file_name>')
 api.add_resource(upload_file, '/upload/<int:db>/<string:file_name>')
@@ -844,6 +911,7 @@ api.add_resource(manilla_data_per_onion, '/manilla/<string:start_dt>/<string:end
 api.add_resource(manilla_data, '/manilla_new/<string:start_dt>/<string:end_dt>')
 api.add_resource(test_data, '/test/<int:test_num>')
 api.add_resource(rintervals, '/randomized_intervals')
+api.add_resource(heatmap, '/heatmap')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8101, debug=True)
