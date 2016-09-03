@@ -8,6 +8,61 @@ $(document).ready(function () {
     //
 });
 
+var getTimeChart = function () {
+    $.ajax({
+        type: "GET",
+        url: "./heatmap.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            console.log(jsonResult);
+            drawLineColors(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+}
+
+var drawLineColors = function(jsonResult) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Onion1');
+    data.addColumn('number', 'Onion2');
+    data.addColumn('number', 'Middle');
+    
+    var count = 13;
+    var dataarray = [];
+    
+    $.each(jsonResult['onion1'], function (key, value) {
+        console.log(key);
+        if (key != "None") {
+            dataarray.push([count, jsonResult['onion1'][key],jsonResult['onion2'][key], jsonResult['onion1and2'][key]]);
+            count += 1;
+        }
+    })
+    
+    data.addRows(dataarray);
+
+    var options = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Time (Starting from 10:13)'
+        },
+        vAxis: {
+            title: 'Number of People'
+        },
+        colors: ['#1abc9c', '#e74c3c', '#f39c12']
+    };
+
+    var chart = new google.visualization.LineChart(document.getElementById('time_chart'));
+    chart.draw(data, options);
+}
+
 var getInfo = function () {
     $.ajax({
         type: "GET",
@@ -26,12 +81,12 @@ var getInfo = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getInfo();
-//    }, 5000);
+    //    setTimeout(function () {
+    //        getInfo();
+    //    }, 5000);
 }
 
-var onionOne = function(){
+var onionOne = function () {
     $.ajax({
         type: "GET",
         url: "./onion1.json",
@@ -51,7 +106,7 @@ var onionOne = function(){
     });
 };
 
-var onionTwo = function(){
+var onionTwo = function () {
     $.ajax({
         type: "GET",
         url: "./onion2.json",
@@ -71,7 +126,7 @@ var onionTwo = function(){
     });
 };
 
-var onionAll = function(){
+var onionAll = function () {
     $.ajax({
         type: "GET",
         url: "./onion1and2.json",
@@ -91,123 +146,124 @@ var onionAll = function(){
     });
 };
 
-var processData = function (jsonResult){
+var processData = function (jsonResult) {
+    getTimeChart();
     $("#num-unique-mac").html(jsonResult.total_devices['real_count']);
-            width = $('#num-unique-mac').width();
-            $('#num-unique-mac').css({
-                'height': width + 'px'
-            });
+    width = $('#num-unique-mac').width();
+    $('#num-unique-mac').css({
+        'height': width + 'px'
+    });
 
-            $("#num-invalid-mac").html(jsonResult.total_devices['invalid_count']);
-            var width = $('#num-invalid-mac').width();
-            $('#num-invalid-mac').css({
-                'height': width + 'px'
-            });
+    $("#num-invalid-mac").html(jsonResult.total_devices['invalid_count']);
+    var width = $('#num-invalid-mac').width();
+    $('#num-invalid-mac').css({
+        'height': width + 'px'
+    });
 
 
-            $("#num-total-mac").html(jsonResult.total_devices['total_count']);
-            var width = $('#num-total-mac').width();
-            $('#num-total-mac').css({
-                'height': width + 'px'
-            });
-            updateLifeTime(jsonResult['randomized_intervals']);
-            updateSignalStrength(jsonResult['sig_str']);
-            updateVendorChart(jsonResult['vendor']);
-            updateSSIDChart(jsonResult['ssid']);
-            $('#loading_screen').hide();
-            $('#main_content').show();
+    $("#num-total-mac").html(jsonResult.total_devices['total_count']);
+    var width = $('#num-total-mac').width();
+    $('#num-total-mac').css({
+        'height': width + 'px'
+    });
+    updateLifeTime(jsonResult['randomized_intervals']);
+    updateSignalStrength(jsonResult['sig_str']);
+    updateVendorChart(jsonResult['vendor']);
+    updateSSIDChart(jsonResult['ssid']);
+    $('#loading_screen').hide();
+    $('#main_content').show();
 };
 
 var updateLifeTime = function (jsonResult) {
 
-        var dataarray = [];
-        dataarray.push(['Year', 'Visitations', {
-            role: 'style'
+    var dataarray = [];
+    dataarray.push(['Year', 'Visitations', {
+        role: 'style'
         }]);
-        $.each(jsonResult, function (key, value) {
-            if (key != "None") {
-                dataarray.push([key, value, 'stroke-color: #703593; stroke-width: 4; fill-color: #C5A5CF']);
-            }
-        })
-        var data = google.visualization.arrayToDataTable(dataarray);
-    
-        var view = new google.visualization.DataView(data);
-        view.setColumns([0, 1,
+    $.each(jsonResult, function (key, value) {
+        if (key != "None") {
+            dataarray.push([key, value, 'stroke-color: #703593; stroke-width: 4; fill-color: #C5A5CF']);
+        }
+    })
+    var data = google.visualization.arrayToDataTable(dataarray);
+
+    var view = new google.visualization.DataView(data);
+    view.setColumns([0, 1,
                            2]);
-    
-        var options = {
-            width: 800,
-            height: 400,
-            bar: {
-                groupWidth: "95%"
-            },
-            legend: {
-                position: "none"
-            },
-        };
-        var chart = new google.visualization.ColumnChart(document.getElementById("chart_div"));
-        chart.draw(view, options);
-//    var chartDiv = document.getElementById('chart_div');
-//
-//    var data = new google.visualization.DataTable();
-//    data.addColumn('number', 'Index');
-//    data.addColumn('number', 'Fibonacci Number');
-//
-//    var dataarray = [];
-//
-//    $.each(jsonResult, function (key, value) {
-//        if (key != "None") {
-//            data.addRows([parseInt(key), parseInt(value)]);
-//        }
-//    })
-//
-//    console.log(dataarray);
-//    data.addRows(
-//        dataarray);
-//
-//    var linearOptions = {
-//        legend: 'none',
-//        pointSize: 5,
-//        width: 900,
-//        height: 500,
-//        hAxis: {
-//            gridlines: {
-//                count: -1
-//            }
-//        },
-//        vAxis: {
-//            ticks: [0, 50, 250, 300]
-//        }
-//    };
-//
-//    var mirrorLogOptions = {
-//        title: 'Fibonacci Numbers in Mirror Log Scale',
-//        legend: 'none',
-//        pointSize: 5,
-//        width: 900,
-//        height: 500,
-//        hAxis: {
-//            gridlines: {
-//                count: -1
-//            }
-//        },
-//        vAxis: {
-//            scaleType: 'mirrorLog',
-//            ticks: [0, 5, 10]
-//        }
-//    };
-//
-//    function drawLinearChart() {
-//        var linearChart = new google.visualization.LineChart(chartDiv);
-//        linearChart.draw(data, linearOptions);
-//    }
-//
-//    function drawMirrorLogChart() {
-//        var mirrorLogChart = new google.visualization.LineChart(chartDiv);
-//        mirrorLogChart.draw(data, mirrorLogOptions);
-//    }
-//
-//    drawMirrorLogChart();
+
+    var options = {
+        width: 800,
+        height: 400,
+        bar: {
+            groupWidth: "95%"
+        },
+        legend: {
+            position: "none"
+        },
+    };
+    var chart = new google.visualization.ColumnChart(document.getElementById("chart_div"));
+    chart.draw(view, options);
+    //    var chartDiv = document.getElementById('chart_div');
+    //
+    //    var data = new google.visualization.DataTable();
+    //    data.addColumn('number', 'Index');
+    //    data.addColumn('number', 'Fibonacci Number');
+    //
+    //    var dataarray = [];
+    //
+    //    $.each(jsonResult, function (key, value) {
+    //        if (key != "None") {
+    //            data.addRows([parseInt(key), parseInt(value)]);
+    //        }
+    //    })
+    //
+    //    console.log(dataarray);
+    //    data.addRows(
+    //        dataarray);
+    //
+    //    var linearOptions = {
+    //        legend: 'none',
+    //        pointSize: 5,
+    //        width: 900,
+    //        height: 500,
+    //        hAxis: {
+    //            gridlines: {
+    //                count: -1
+    //            }
+    //        },
+    //        vAxis: {
+    //            ticks: [0, 50, 250, 300]
+    //        }
+    //    };
+    //
+    //    var mirrorLogOptions = {
+    //        title: 'Fibonacci Numbers in Mirror Log Scale',
+    //        legend: 'none',
+    //        pointSize: 5,
+    //        width: 900,
+    //        height: 500,
+    //        hAxis: {
+    //            gridlines: {
+    //                count: -1
+    //            }
+    //        },
+    //        vAxis: {
+    //            scaleType: 'mirrorLog',
+    //            ticks: [0, 5, 10]
+    //        }
+    //    };
+    //
+    //    function drawLinearChart() {
+    //        var linearChart = new google.visualization.LineChart(chartDiv);
+    //        linearChart.draw(data, linearOptions);
+    //    }
+    //
+    //    function drawMirrorLogChart() {
+    //        var mirrorLogChart = new google.visualization.LineChart(chartDiv);
+    //        mirrorLogChart.draw(data, mirrorLogOptions);
+    //    }
+    //
+    //    drawMirrorLogChart();
 }
 var getNumberDevices = function () {
     //get the number of real MACs, randomized MACs, and total devices
@@ -247,72 +303,70 @@ var getNumberDevices = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getNumberDevices();
-//    }, 3000);
+    //    setTimeout(function () {
+    //        getNumberDevices();
+    //    }, 3000);
 }
 
 var updateSignalStrength = function (jsonResult) {
     var data = new google.visualization.DataTable();
-    
-//    $('#wifi-poor').html(jsonResult['poor']);
-//    $('#wifi-fair').html(jsonResult['fair']);
-//    $('#wifi-good').html(jsonResult['good']);
-//    $('#wifi-strong').html(jsonResult['strong']);
+
+    //    $('#wifi-poor').html(jsonResult['poor']);
+    //    $('#wifi-fair').html(jsonResult['fair']);
+    //    $('#wifi-good').html(jsonResult['good']);
+    //    $('#wifi-strong').html(jsonResult['strong']);
     var totalstrong = 0;
     var totalgood = 0;
     var totalfair = 0;
     var totalpoor = 0;
-    if(jsonResult['onion1'] == undefined){
+    if (jsonResult['onion1'] == undefined) {
         totalstrong = jsonResult['onion2']['strong'];
         totalgood = jsonResult['onion2']['good'];
         totalfair = jsonResult['onion2']['fair'];
         totalpoor = jsonResult['onion2']['poor'];
-        
+
         $('#onion1-wifi-poor').html(0);
         $('#onion1-wifi-fair').html(0);
         $('#onion1-wifi-good').html(0);
         $('#onion1-wifi-strong').html(0);
-        
+
         $('#onion2-wifi-poor').html(totalpoor);
         $('#onion2-wifi-fair').html(totalfair);
         $('#onion2-wifi-good').html(totalgood);
         $('#onion2-wifi-strong').html(totalstrong);
-        
-    }
-    else if(jsonResult['onion2'] == undefined){
+
+    } else if (jsonResult['onion2'] == undefined) {
         totalstrong = jsonResult['onion1']['strong'];
         totalgood = jsonResult['onion1']['good'];
         totalfair = jsonResult['onion1']['fair'];
         totalpoor = jsonResult['onion1']['poor'];
-        
+
         $('#onion1-wifi-poor').html(totalpoor);
         $('#onion1-wifi-fair').html(totalfair);
         $('#onion1-wifi-good').html(totalgood);
         $('#onion1-wifi-strong').html(totalstrong);
-        
+
         $('#onion2-wifi-poor').html(0);
         $('#onion2-wifi-fair').html(0);
         $('#onion2-wifi-good').html(0);
         $('#onion2-wifi-strong').html(0);
-    }
-    else{
-        totalstrong = jsonResult['onion1']['strong']+jsonResult['onion2']['strong'];
-        totalgood = jsonResult['onion1']['good']+jsonResult['onion2']['good'];
-        totalfair = jsonResult['onion1']['fair']+jsonResult['onion2']['fair'];
-        totalpoor = jsonResult['onion1']['poor']+jsonResult['onion2']['poor'];
-        
+    } else {
+        totalstrong = jsonResult['onion1']['strong'] + jsonResult['onion2']['strong'];
+        totalgood = jsonResult['onion1']['good'] + jsonResult['onion2']['good'];
+        totalfair = jsonResult['onion1']['fair'] + jsonResult['onion2']['fair'];
+        totalpoor = jsonResult['onion1']['poor'] + jsonResult['onion2']['poor'];
+
         $('#onion1-wifi-poor').html(jsonResult['onion1']['poor']);
         $('#onion1-wifi-fair').html(jsonResult['onion1']['fair']);
         $('#onion1-wifi-good').html(jsonResult['onion1']['good']);
         $('#onion1-wifi-strong').html(jsonResult['onion1']['strong']);
-        
+
         $('#onion2-wifi-poor').html(jsonResult['onion2']['poor']);
         $('#onion2-wifi-fair').html(jsonResult['onion2']['fair']);
         $('#onion2-wifi-good').html(jsonResult['onion2']['good']);
         $('#onion2-wifi-strong').html(jsonResult['onion2']['strong']);
     }
-    
+
     data.addColumn('string', 'Strength');
     data.addColumn('number', '# Devices');
     data.addRows([
@@ -404,9 +458,9 @@ var getSignalStrength = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getSignalStrength();
-//    }, 3000);
+    //    setTimeout(function () {
+    //        getSignalStrength();
+    //    }, 3000);
 }
 
 var updateVendorChart = function (jsonResult) {
@@ -471,9 +525,9 @@ var getVendorChart = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getVendorChart();
-//    }, 3000);
+    //    setTimeout(function () {
+    //        getVendorChart();
+    //    }, 3000);
 }
 
 var updateSSIDChart = function (jsonResult) {
@@ -541,9 +595,9 @@ var getSSIDChart = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getSSIDChart();
-//    }, 3000);
+    //    setTimeout(function () {
+    //        getSSIDChart();
+    //    }, 3000);
 }
 
 var getLifetimeChart = function () {
@@ -589,7 +643,7 @@ var getLifetimeChart = function () {
             console.log(jqXHR);
         }
     });
-//    setTimeout(function () {
-//        getLifetimeChart();
-//    }, 3000);
+    //    setTimeout(function () {
+    //        getLifetimeChart();
+    //    }, 3000);
 }
