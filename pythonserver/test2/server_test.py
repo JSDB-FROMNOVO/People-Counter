@@ -665,14 +665,14 @@ def parse_sniff_loc(sniff, heatmap, intervals_map):
 
 def get_fend_heatmap(heatmap):
     heatmap_fend = {
-	"onion1": [],
-	"onion2": [],
-	"onion1and2": []
+	"onion1": {},
+	"onion2": {},
+	"onion1and2": {}
     }
     for timestamp in sorted(heatmap.keys()):
-	heatmap_fend["onion1"].append({timestamp: heatmap[timestamp]["0"]})
-	heatmap_fend["onion2"].append({timestamp: heatmap[timestamp]["1"]})
-	heatmap_fend["onion1and2"].append({timestamp: heatmap[timestamp]["2"]})
+	heatmap_fend["onion1"][timestamp] =  heatmap[timestamp]["0"]
+	heatmap_fend["onion2"][timestamp] =  heatmap[timestamp]["1"]
+	heatmap_fend["onion1and2"][timestamp] = heatmap[timestamp]["2"]
     return heatmap_fend
 
 
