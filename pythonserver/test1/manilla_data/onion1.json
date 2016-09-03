@@ -1,0 +1,55 @@
+{
+    "randomized_intervals": {
+        "0": 0, 
+        "10": 0, 
+        "20": 0, 
+        "30": 0, 
+        "40": 0, 
+        "50": 0, 
+        "60": 0, 
+        "80": 0, 
+        "90": 0, 
+        "100": 0, 
+        "110": 0, 
+        "120": 0, 
+        "130": 0, 
+        "140": 0, 
+        "150": 0, 
+        "160": 0, 
+        "170": 0, 
+        "180": 0, 
+        "190": 0, 
+        "200": 0, 
+        "210": 0, 
+        "220": 0, 
+        "230": 0, 
+        "240": 0, 
+        "250": 0, 
+        "260": 0
+    }, 
+    "sig_str": {
+        "fair": 27, 
+        "good": 201, 
+        "poor": 1, 
+        "strong": 93
+    }, 
+    "ssid": {
+        "#TELUSDirect": 50, 
+        "5099251212": 137, 
+        "BELL_WIFI": 117, 
+        "None": 782, 
+        "SaskTel Select Wi-Fi 1": 63
+    }, 
+    "total_devices": {
+        "invalid_count": 146, 
+        "real_count": 176, 
+        "total_count": 322
+    }, 
+    "vendor": {
+        "Apple, Inc.": 34, 
+        "Motorola Mobility LLC, a Lenovo Company": 27, 
+        "Murata Manufacturing Co., Ltd.": 18, 
+        "SAMSUNG ELECTRO-MECHANICS(THAILAND)": 40, 
+        "Samsung Electronics Co.,Ltd": 23
+    }
+}
