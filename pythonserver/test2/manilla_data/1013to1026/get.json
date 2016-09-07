@@ -1,0 +1,63 @@
+{
+    "randomized_intervals": {
+        "0": 0, 
+        "10": 0, 
+        "20": 0, 
+        "30": 0, 
+        "40": 0, 
+        "50": 0, 
+        "60": 0, 
+        "80": 0, 
+        "90": 0, 
+        "100": 0, 
+        "110": 0, 
+        "120": 0, 
+        "130": 0, 
+        "140": 0, 
+        "150": 0, 
+        "160": 0, 
+        "170": 0, 
+        "180": 0, 
+        "190": 0, 
+        "200": 0, 
+        "210": 0, 
+        "220": 0, 
+        "230": 0, 
+        "240": 0, 
+        "250": 0, 
+        "260": 0
+    }, 
+    "sig_str": {
+        "onion1": {
+            "fair": 44, 
+            "good": 292, 
+            "poor": 1, 
+            "strong": 171
+        }, 
+        "onion2": {
+            "fair": 34, 
+            "good": 101, 
+            "poor": 2, 
+            "strong": 160
+        }
+    }, 
+    "ssid": {
+        "#TELUSDirect": 266, 
+        "5099251212": 274, 
+        "BELL_WIFI": 253, 
+        "None": 2288, 
+        "vielvielss": 154
+    }, 
+    "total_devices": {
+        "invalid_count": 138, 
+        "real_count": 392, 
+        "total_count": 530
+    }, 
+    "vendor": {
+        "Apple, Inc.": 51, 
+        "LG Electronics (Mobile Communications)": 24, 
+        "Motorola Mobility LLC, a Lenovo Company": 34, 
+        "SAMSUNG ELECTRO-MECHANICS(THAILAND)": 50, 
+        "Samsung Electronics Co.,Ltd": 42
+    }
+}

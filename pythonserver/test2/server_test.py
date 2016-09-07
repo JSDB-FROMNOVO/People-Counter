@@ -550,10 +550,6 @@ def get_all_sniffs(start_epoch, end_epoch):
    
     for sniff in mongo.db.onion1_corrected.find( { "timestamp" : { "$gt": start_epoch, "$lt": end_epoch } } ):
 	del sniff['_id']
-	# get back real timestamps from onion1 timestamps
-	#delta = 51630 + 180
-	#timestamp_corrected = sniff["timestamp"] + float(delta)
-	#sniff["timestamp"] = timestamp_corrected 
 	sniffs["onion1"].append(sniff)
 	sniffs["zcounter1"] += 1
     
@@ -586,6 +582,97 @@ def remove_invalid(timestamp, onion_num):
             print "REMOVING RANDOMIZED %s" % str(sniff["timestamp"])
     #mongo.db.invalid_sniffs.deleteMany( { "timestamp": { "$lt": TIMECHECK } } )
 
+def get_lifecycles():
+    lifecycles = {}
+    for sniff in mongo.db.real_sniffs_onion1.find():
+	lifecycles = parse_lifecycle(sniff, lifecycles)
+    for sniff in mongo.db.invalid_sniffs_onion1.find():
+        lifecycles = parse_lifecycle(sniff, lifecycles)
+
+    for sniff in mongo.db.real_sniffs_onion2.find():
+        lifecycles = parse_lifecycle(sniff, lifecycles)
+    for sniff in mongo.db.invalid_sniffs_onion2.find():
+        lifecycles = parse_lifecycle(sniff, lifecycles)
+
+    return lifecycles
+
+def parse_lifecycle(sniff, lifecycles):
+    if len(sniff["timestamp_list"]) == 1:
+        lifecycles[sniff["source"]] = 0
+    else:
+        lcycle = float(sniff["timestamp_list"][-1]["timestamp"]) - float(sniff["timestamp_list"][0]["timestamp"])
+        lifecycles[sniff["source"]] = int(lcycle)
+    return lifecycles
+
+def get_probe_intervals():
+    probe_intervals = {}
+    for sniff in mongo.db.real_sniffs_onion1.find():
+        probe_intervals = parse_probe(sniff, probe_intervals)
+    for sniff in mongo.db.invalid_sniffs_onion1.find():
+        probe_intervals = parse_probe(sniff, probe_intervals)
+
+    for sniff in mongo.db.real_sniffs_onion2.find():
+        probe_intervals = parse_probe(sniff, probe_intervals)
+    for sniff in mongo.db.invalid_sniffs_onion2.find():
+        probe_intervals = parse_probe(sniff, probe_intervals)
+
+    return probe_intervals
+
+def parse_probe(sniff, probe_intervals):
+    probe_intervals[sniff["source"]] = []
+    if len(sniff["timestamp_list"]) == 1:
+	probe_intervals[sniff["source"]].append(0)
+    else:
+	tlist_len = len(sniff["timestamp_list"]) - 1
+	for i in range(tlist_len):
+	    tlist = sniff["timestamp_list"]
+	    pinterval = tlist[i+1]["timestamp"] - tlist[i]["timestamp"]
+	    probe_intervals[sniff["source"]].append(pinterval)
+    return probe_intervals 
+
+def lifecycle_fend(lifecycles):
+    output = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+    for source in lifecycles.keys():
+	lcycle = math.ceil(lifecycles[source]/60)
+	output[lcycle] += 1
+    return output 
+
+def lcycle_probability_fend(lifecycles):
+    output = {0: None, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+    total = 0
+    print lifecycles
+    print lifecycles.keys()
+    for time in lifecycles.keys():
+	total += lifecycles[time]
+    print total
+    for time in lifecycles.keys():
+	prob = float(lifecycles[time])/float(total)
+	output[time] = round(prob, 3)
+    return output 
+
+def probe_fend(probes):
+    output = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0}
+    for source in probes.keys():
+	for pinterval in probes[source]:
+	    #consequtive bursts (<5sec) in probes
+	    if pinterval < 5 and pinterval > 0:
+		rnum = 4
+		pinterval = round(pinterval/60, rnum)
+		if pinterval > 0.002 and pinterval < 0.01:
+		    rnum = 3
+		    pinterval = round(pinterval, rnum)
+		elif pinterval >= 0.01:
+		    rnum = 2
+		    pinterval = round(pinterval, rnum)
+		if pinterval not in output.keys():
+		    output[pinterval] = 1
+		else:
+		    output[pinterval] += 1
+	    elif pinterval == 0 or pinterval >= 5:
+		pinterval = math.ceil(pinterval/60)
+		output[pinterval] += 1
+    return output
+
 
 """ Heatmap functions """
 
@@ -616,6 +703,7 @@ def get_time_map(timestamp):
 
 def get_heatmap_stats(start_time, end_time):
     #1471687680, 1471688460
+    #1471687980, 1471688760
     heatmap = getheatmap(start_time, end_time) 
     intervals_map = getintervalmap(start_time, end_time)
 
@@ -636,29 +724,29 @@ def get_heatmap_stats(start_time, end_time):
         parser = parse_sniff_loc(sniff, heatmap, intervals_map)
         heatmap = parser["heatmap"]
         intervals_map = parser["intervals_map"]
-    print(json.dumps(intervals_map, sort_keys=True, indent=4, separators=(',', ': ')))
+    #print(json.dumps(intervals_map, sort_keys=True, indent=4, separators=(',', ': ')))
     return heatmap
 
 def parse_sniff_loc(sniff, heatmap, intervals_map):
     """ "0"-onion1, "1"-onion2, "2"-onion1and2 """
     output = {"heatmap": None, "intervals_map": None}
     for timestamp in sniff["timestamp_list"]:
-        timemap = get_time_map(timestamp["timestamp"])     
+        timemap = int(get_time_map(timestamp["timestamp"]))
         if sniff["source"] in intervals_map[timemap]:
-            print "cont"
+            #print "cont"
 	    continue
         elif timestamp["loc_id"] == "0":
             heatmap[timemap]["0"] += 1            
             intervals_map[timemap].append(sniff["source"])
-	    print ""
+	    #print ""
         elif timestamp["loc_id"] == "1":
             heatmap[timemap]["1"] += 1
             intervals_map[timemap].append(sniff["source"])
-	    print ""
+	    #print ""
         elif timestamp["loc_id"] == "2":
             heatmap[timemap]["2"] += 1
             intervals_map[timemap].append(sniff["source"])
-	    print ""
+	    #print ""
     output["heatmap"] = heatmap
     output["intervals_map"] = intervals_map
     return output 
@@ -878,23 +966,33 @@ class manilla_data(Resource):
         e2 = str_to_epoch(end_dt)
         print [e1, e2]
         sniffs = get_all_sniffs(e1, e2)
-        #for sniff in sniffs["onion1"]:
-	#    add_sniff(sniff, 1)
-        #    remove_invalid(sniff["timestamp"], 1)
+        for sniff in sniffs["onion1"]:
+	    add_sniff(sniff, 1)
+            remove_invalid(sniff["timestamp"], 1)
         for sniff in sniffs["onion2"]:
 	    add_sniff(sniff, 2)
             remove_invalid(sniff["timestamp"], 2)
 
-# '/test/<int:test_num>'
+# '/test/<string:data_type>'
 class test_data(Resource):
-    # curl http://10.12.1.37:8101/test/2 -X GET -v
-    # curl http://10.12.1.37:8101/test/3 -X GET -v
-    def get(self, test_num):
-        global vendors
-        vendors = get_vendor_list()
-
-	for sniff in mongo.db.test8.find():
-	    add_sniff(sniff)
+    # curl http://10.12.1.37:8101/test/lifecycles -X GET -v
+    # curl http://10.12.1.37:8101/test/lcycle_probability -X GET -v
+    # curl http://10.12.1.37:8101/test/probes -X GET -v
+    def get(self, data_type):
+        #global vendors
+        #vendors = get_vendor_list()
+	if data_type == "lifecycles":
+	    lcycle = get_lifecycles()
+	    output = lifecycle_fend(lcycle)
+	elif data_type == "lcycle_probability":
+	    lcycle_raw = get_lifecycles()
+	    lcycle = lifecycle_fend(lcycle_raw)
+	    output = lcycle_probability_fend(lcycle)
+	elif data_type == "probes":
+	    probes = get_probe_intervals()
+	    output = probe_fend(probes) 
+	return output
+	
 
 # '/randomized_intervals'
 class rintervals(Resource):
@@ -910,7 +1008,8 @@ class rintervals(Resource):
 class heatmap(Resource):
     # curl http://10.12.1.37:8101/heatmap -X GET -v
     def get(self):
-    	start_time, end_time = 1471687680, 1471688460
+    	#start_time, end_time = 1471687680, 1471688460
+	start_time, end_time = 1471687980, 1471688760
 	heatmap = get_heatmap_stats(start_time, end_time)
 	heatmap_fend = get_fend_heatmap(heatmap)
 	return heatmap_fend
@@ -924,7 +1023,7 @@ api.add_resource(db_frontend, '/db/fend/<string:data_req>')
 api.add_resource(db_add_vendors, '/db/add_vendors')
 api.add_resource(manilla_data_per_onion, '/manilla/<string:start_dt>/<string:end_dt>/<int:onion>')
 api.add_resource(manilla_data, '/manilla_new/<string:start_dt>/<string:end_dt>')
-api.add_resource(test_data, '/test/<int:test_num>')
+api.add_resource(test_data, '/test/<string:data_type>')
 api.add_resource(rintervals, '/randomized_intervals')
 api.add_resource(heatmap, '/heatmap')
 
