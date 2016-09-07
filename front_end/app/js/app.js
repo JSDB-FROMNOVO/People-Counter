@@ -38,7 +38,7 @@ var drawLineColors = function(jsonResult) {
     var dataarray = [];
     
     $.each(jsonResult['onion1'], function (key, value) {
-        console.log(key);
+        //console.log(key);
         if (key != "None") {
             dataarray.push([count, jsonResult['onion1'][key],jsonResult['onion2'][key], jsonResult['onion1and2'][key]]);
             count += 1;
@@ -61,6 +61,241 @@ var drawLineColors = function(jsonResult) {
 
     var chart = new google.visualization.LineChart(document.getElementById('time_chart'));
     chart.draw(data, options);
+}
+
+var getLifeCycleProbaility = function () {
+    $.ajax({
+        type: "GET",
+        url: "./lcycle_1_probablity.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            //console.log(jsonResult);
+            getLifeCycleProbailityChart(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+}
+
+var getLifeCycleProbailityChart = function(jsonResult) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Probability of number of MAC');
+    
+    var dataarray = [];
+    
+    var current_count =0;
+    
+    $.each(jsonResult, function (key, value) {
+        console.log("KEY" + key);
+        console.log("value" + value);
+        if (key != "None") {
+            current_count += parseFloat(value);
+            if (current_count >= 1)
+                current_count =1 ;
+            dataarray.push([parseInt(key), current_count]);
+        }
+    })
+    
+    data.addRows(dataarray);
+
+    var options = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Life Time (min)'
+        },
+        vAxis: {
+            title: 'Probability of Number of MAC'
+        },
+        colors: ['#9b59b6']
+    };
+
+    var chart = new google.visualization.LineChart(document.getElementById('probaility_mac_chart'));
+    chart.draw(data, options);
+}
+
+var macNumber = function () {
+    $.ajax({
+        type: "GET",
+        url: "./lifecycles_3_count.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            //console.log(jsonResult);
+            macNumberChart(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+}
+
+var macNumberChart = function(jsonResult) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Number of MAC');
+    
+    var dataarray = [];
+    
+    $.each(jsonResult, function (key, value) {
+        console.log("KEY" + key);
+        console.log("value" + value);
+        if (key != "None") {
+            dataarray.push([parseInt(key), parseInt(value)]);
+        }
+    })
+    
+    data.addRows(dataarray);
+
+    var options = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Life Time (min)'
+        },
+        vAxis: {
+            title: 'Number of MAC'
+        },
+        colors: ['#e74c3c']
+    };
+
+    var chart = new google.visualization.ColumnChart(document.getElementById('num_mac_time_chart'));
+    chart.draw(data, options);
+}
+
+var probingTime = function () {
+    $.ajax({
+        type: "GET",
+        url: "./probes_2_count.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            //console.log(jsonResult);
+            probingTimeChart(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+}
+
+var probingTimeChart = function(jsonResult) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Number of Probe');
+    
+    var data2 = new google.visualization.DataTable();
+    data2.addColumn('number', 'X');
+    data2.addColumn('number', 'Number of Probe');
+    
+    var data3 = new google.visualization.DataTable();
+    data3.addColumn('number', 'X');
+    data3.addColumn('number', 'Number of Probe');
+    
+    var data4 = new google.visualization.DataTable();
+    data4.addColumn('number', 'X');
+    data4.addColumn('number', 'Number of Probe');
+    
+    var dataarray1 = [];
+    var dataarray2 = [];
+    var dataarray3 = [];
+    var dataarray4 = [];
+    
+    $.each(jsonResult, function (key, value) {
+        console.log("KEY" + key);
+        console.log("value" + value);
+        if (key != "None") {
+            
+            var tempkey = parseFloat(key);
+            if(tempkey < 0.002)
+            {
+                dataarray1.push([parseFloat(key)*60, parseInt(value)]);
+            }
+            else if(tempkey >= 0.002 && tempkey <= 0.08)
+            {
+                dataarray2.push([parseFloat(key)*60, parseInt(value)]);
+            }
+            else if(tempkey > 0.08)
+            {
+                dataarray3.push([parseFloat(key), parseInt(value)]);
+            }
+            dataarray4.push([parseFloat(key), parseInt(value)]);
+        }
+    })
+    
+    data.addRows(dataarray1);
+    data2.addRows(dataarray2);
+    data3.addRows(dataarray3);
+    data4.addRows(dataarray4);
+    
+    var options = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Delta of Probing Time (sec)'
+        },
+        vAxis: {
+            title: 'Number of Probe'
+        },
+        colors: ['#3498db']
+    }; 
+    
+    var options2 = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Delta of Probing Time (sec)'
+        },
+        vAxis: {
+            title: 'Number of Probe'
+        },
+        colors: ['#1abc9c']
+    };
+    
+    var options3 = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Delta of Probing Time (min)'
+        },
+        vAxis: {
+            title: 'Number of Probe'
+        },
+        colors: ['#f1c40f']
+    };
+    
+    var options4 = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Delta of Probing Time (min)'
+        },
+        vAxis: {
+            title: 'Number of Probe'
+        },
+        colors: ['#f39c12']
+    };
+    
+    var chart = new google.visualization.ColumnChart(document.getElementById('probing_time_chart_1'));
+    chart.draw(data, options);
+    var chart = new google.visualization.ColumnChart(document.getElementById('probing_time_chart_2'));
+    chart.draw(data2, options2);
+    var chart = new google.visualization.ColumnChart(document.getElementById('probing_time_chart_3'));
+    chart.draw(data3, options3);
+    var chart = new google.visualization.ColumnChart(document.getElementById('overall_probing_chart'));
+    chart.draw(data4, options4);
 }
 
 var getInfo = function () {
@@ -148,6 +383,9 @@ var onionAll = function () {
 
 var processData = function (jsonResult) {
     getTimeChart();
+    getLifeCycleProbaility();
+    macNumber();
+    probingTime();
     $("#num-unique-mac").html(jsonResult.total_devices['real_count']);
     width = $('#num-unique-mac').width();
     $('#num-unique-mac').css({
@@ -647,3 +885,14 @@ var getLifetimeChart = function () {
     //        getLifetimeChart();
     //    }, 3000);
 }
+
+
+//def process_sig_str(sniff, sig_str_stats):
+//    ss = sniff["signal_strength"]
+//    if ss >= -35: #5m
+//        sig_str_stats["strong"] += 1
+//    elif ss < -35 and ss >= -45: #25m
+//        sig_str_stats["good"] += 1
+//    elif ss < -45 and ss >= -49: #100m
+//        sig_str_stats["fair"] += 1
+//    else: #200-250m
