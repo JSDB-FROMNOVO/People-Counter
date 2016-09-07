@@ -29,16 +29,16 @@
     },
     "sig_str": {
         "onion1": {
-            "fair": 0,
-            "good": 2,
-            "poor": 1,
-            "strong": 597
-        },
+            "fair": 44, 
+            "good": 292, 
+            "poor": 1, 
+            "strong": 171
+        }, 
         "onion2": {
-            "fair": 0,
-            "good": 0,
-            "poor": 1,
-            "strong": 371
+            "fair": 34, 
+            "good": 101, 
+            "poor": 2, 
+            "strong": 160
         }
     },
     "ssid": {

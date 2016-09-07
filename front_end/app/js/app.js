@@ -298,6 +298,58 @@ var probingTimeChart = function(jsonResult) {
     chart.draw(data4, options4);
 }
 
+var lifeTime = function () {
+    $.ajax({
+        type: "GET",
+        url: "./randomized_intervals.json",
+        dataType: 'json',
+        crossDomain: true,
+        data: {},
+        success: function (jsonResult) {
+            //console.log(jsonResult);
+            lifeTimeChart(jsonResult);
+        },
+        error: function (jqXHR, textStatus) {
+            //handle error
+            console.log('err');
+            console.log(jqXHR);
+        }
+    });
+}
+
+var lifeTimeChart = function(jsonResult) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'X');
+    data.addColumn('number', 'Number of change in MAC');
+    
+    var dataarray = [];
+    
+    $.each(jsonResult['randomized_intervals'], function (key, value) {
+        if (key != "None") {
+            dataarray.push([parseInt(value)/60, 1]);
+        }
+    })
+    
+    data.addRows(dataarray);
+
+    var options = {
+        width: 800,
+        height: 400,
+        hAxis: {
+            title: 'Life Time (min)'
+        },
+        vAxis: {
+            title: 'Number of change in MAC'
+        },
+        colors: ['#f39c12']
+    };
+
+    var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+    chart.draw(data, options);
+}
+
+
+
 var getInfo = function () {
     $.ajax({
         type: "GET",
@@ -386,6 +438,7 @@ var processData = function (jsonResult) {
     getLifeCycleProbaility();
     macNumber();
     probingTime();
+    lifeTime();
     $("#num-unique-mac").html(jsonResult.total_devices['real_count']);
     width = $('#num-unique-mac').width();
     $('#num-unique-mac').css({
@@ -404,7 +457,7 @@ var processData = function (jsonResult) {
     $('#num-total-mac').css({
         'height': width + 'px'
     });
-    updateLifeTime(jsonResult['randomized_intervals']);
+    //updateLifeTime(jsonResult['randomized_intervals']);
     updateSignalStrength(jsonResult['sig_str']);
     updateVendorChart(jsonResult['vendor']);
     updateSSIDChart(jsonResult['ssid']);
