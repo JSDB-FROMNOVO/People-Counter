@@ -298,14 +298,22 @@ def check_detection_id(sniff, onion_num):
 
     if onion_num == 1:
 	for snf in mongo.db.onion2_corrected.find({"source": sniff["source"]}):
-	    if snf["timestamp"] >= ts_low and snf["timestamp"] <= ts_high: 
-		return "2"
+	    #going to onion1 (detected in onion2 before)
+	    if snf["timestamp"] >= ts_low and snf["timestamp"] <= timestamp: 
+		return "20"
+	    #going to onion2 (detected in onion2 later)
+	    if snf["timestamp"] > timestamp and snf["timestamp"] <= ts_high:
+		return "21" 
 	return "0"
 
     if onion_num == 2:
         for snf in mongo.db.onion1_corrected.find({"source": sniff["source"]}):
-            if snf["timestamp"] >= ts_low and snf["timestamp"] <= ts_high:
-                return "2"
+            #going to onion2 (detected in onion1 before)
+	    if snf["timestamp"] >= ts_low and snf["timestamp"] <= timestamp:
+                return "21"
+	    #going to onion1 (detected in onion1 later)
+            if snf["timestamp"] > timestamp and snf["timestamp"] <= ts_high:
+                return "20"
         return "1"
 	
 ### 
@@ -562,7 +570,7 @@ def get_all_sniffs(start_epoch, end_epoch):
     return sniffs
 
 def remove_invalid(timestamp, onion_num):
-    TIMECHECK = float(timestamp) - 600
+    TIMECHECK = float(timestamp) - 1200
 
     if onion_num == 1:
 	db_real = mongo.db.real_sniffs_onion1
@@ -683,7 +691,7 @@ def getheatmap(start_time, end_time):
     intervals = int((end - start) / 60) + 1
     for i in range(intervals):
         t = int(start + i*60)
-        hmap[t] = {"0": 0, "1": 0, "2": 0}
+        hmap[t] = {"0": 0, "1": 0, "2": 0, "20": 0, "21": 0}
     return hmap
 
 def getintervalmap(start_time, end_time):
@@ -743,10 +751,16 @@ def parse_sniff_loc(sniff, heatmap, intervals_map):
             heatmap[timemap]["1"] += 1
             intervals_map[timemap].append(sniff["source"])
 	    #print ""
-        elif timestamp["loc_id"] == "2":
+        elif timestamp["loc_id"] == "20":
             heatmap[timemap]["2"] += 1
+	    heatmap[timemap]["20"] += 1
             intervals_map[timemap].append(sniff["source"])
 	    #print ""
+	elif timestamp["loc_id"] == "21":
+            heatmap[timemap]["2"] += 1
+            heatmap[timemap]["21"] += 1
+            intervals_map[timemap].append(sniff["source"])
+
     output["heatmap"] = heatmap
     output["intervals_map"] = intervals_map
     return output 
@@ -755,12 +769,18 @@ def get_fend_heatmap(heatmap):
     heatmap_fend = {
 	"onion1": {},
 	"onion2": {},
-	"onion1and2": {}
+	"onion1and2": {
+		"both": {},
+		"to_onion1": {},
+		"to_onion2": {}
+	}
     }
     for timestamp in sorted(heatmap.keys()):
 	heatmap_fend["onion1"][timestamp] =  heatmap[timestamp]["0"]
 	heatmap_fend["onion2"][timestamp] =  heatmap[timestamp]["1"]
-	heatmap_fend["onion1and2"][timestamp] = heatmap[timestamp]["2"]
+	heatmap_fend["onion1and2"]["both"][timestamp] = heatmap[timestamp]["2"]
+	heatmap_fend["onion1and2"]["to_onion1"][timestamp] = heatmap[timestamp]["20"]
+	heatmap_fend["onion1and2"]["to_onion2"][timestamp] = heatmap[timestamp]["21"]
     return heatmap_fend
 
 
@@ -968,10 +988,10 @@ class manilla_data(Resource):
         sniffs = get_all_sniffs(e1, e2)
         for sniff in sniffs["onion1"]:
 	    add_sniff(sniff, 1)
-            remove_invalid(sniff["timestamp"], 1)
+            #remove_invalid(sniff["timestamp"], 1)
         for sniff in sniffs["onion2"]:
 	    add_sniff(sniff, 2)
-            remove_invalid(sniff["timestamp"], 2)
+            #remove_invalid(sniff["timestamp"], 2)
 
 # '/test/<string:data_type>'
 class test_data(Resource):
@@ -1009,7 +1029,8 @@ class heatmap(Resource):
     # curl http://10.12.1.37:8101/heatmap -X GET -v
     def get(self):
     	#start_time, end_time = 1471687680, 1471688460
-	start_time, end_time = 1471687980, 1471688760
+	#start_time, end_time = 1471687980, 1471688760
+	start_time, end_time = 1471684200, 1471689720
 	heatmap = get_heatmap_stats(start_time, end_time)
 	heatmap_fend = get_fend_heatmap(heatmap)
 	return heatmap_fend
