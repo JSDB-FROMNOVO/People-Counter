@@ -986,9 +986,9 @@ class manilla_data(Resource):
         e2 = str_to_epoch(end_dt)
         print [e1, e2]
         sniffs = get_all_sniffs(e1, e2)
-        for sniff in sniffs["onion1"]:
-	    add_sniff(sniff, 1)
-            #remove_invalid(sniff["timestamp"], 1)
+        #for sniff in sniffs["onion1"]:
+	#    add_sniff(sniff, 1)
+        #    #remove_invalid(sniff["timestamp"], 1)
         for sniff in sniffs["onion2"]:
 	    add_sniff(sniff, 2)
             #remove_invalid(sniff["timestamp"], 2)
